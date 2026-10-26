@@ -1,0 +1,1579 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="penales-version" content="3">
+<meta name="theme-color" content="#2f7d32">
+<title>Penales</title>
+<link rel="icon" href="icono-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Penales">
+<style>
+  :root {
+    --cielo: #fdf3df; --tinta: #2b2118; --suave: #6b5a47; --verde: #2f7d32; --verde2: #3c9a40;
+    --boton: #fff8ec; --borde: #c9a77a; --oro: #e2a400; --rojo: #c0392b; --ok: #2e8b3e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: radial-gradient(circle at 50% 0%, #fffaf0, var(--cielo) 60%, #f3e2c2);
+    color: var(--tinta); font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 16px; min-height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 2.6rem; margin: 18px 0 2px; letter-spacing: .02em; text-align: center; }
+  h1 span { color: var(--verde); }
+  .sub { text-align: center; color: var(--suave); margin: 0 0 22px; }
+  .menu { display: grid; gap: 12px; max-width: 420px; width: 100%; margin: 0 auto; }
+  button {
+    font: inherit; font-weight: 600; padding: 14px 18px; border-radius: 14px; cursor: pointer;
+    background: linear-gradient(#fffdf8, var(--boton)); color: var(--tinta);
+    border: 2px solid var(--borde); box-shadow: 0 3px 0 #b8925f, 0 6px 14px rgba(80,50,10,.12);
+  }
+  button.principal { background: linear-gradient(#4caf50, var(--verde)); color: #fff; border-color: #24632a; box-shadow: 0 3px 0 #1d5122, 0 6px 14px rgba(20,60,20,.25); }
+  button:active { transform: translateY(2px); box-shadow: 0 1px 0 #b8925f; }
+  button:focus-visible { outline: 3px solid var(--oro); outline-offset: 3px; }
+  .version { text-align: center; color: var(--suave); font-size: .85rem; margin-top: auto; padding-top: 24px; }
+
+  #juego { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  #zonaJuego { outline: none; display: flex; flex-direction: column; gap: 10px; }
+  #ronda { text-align: center; font-weight: 700; color: var(--suave); min-height: 1.4em; }
+  #marcador { display: grid; gap: 6px; background: #fffaf0; border: 2px solid var(--borde); border-radius: 14px; padding: 8px 12px; }
+  .fila { display: grid; grid-template-columns: minmax(0, 1fr) auto 2.2em; align-items: center; gap: 10px; }
+  .fila .eq { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fila b { font-size: 1.4rem; text-align: right; }
+  .puntos { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+  .tiro { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #b8a080; background: #fff; }
+  .tiro.gol { background: var(--ok); border-color: #1f6b2c; }
+  .tiro.nogol { background: var(--rojo); border-color: #8c2a1f; }
+  #cancha { width: 100%; height: auto; display: block; border-radius: 18px; touch-action: none; user-select: none;
+    box-shadow: 0 0 0 6px #8b5a2b, 0 0 0 9px #c9a77a, 0 10px 26px rgba(60,30,0,.25); background: #79b86a; }
+  #pelota, #arquero { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .28s cubic-bezier(.2,.8,.3,1); }
+  #pelota { transform-origin: 50% 50%; }
+  #cartel { font: 900 34px system-ui, sans-serif; text-anchor: middle; paint-order: stroke; stroke: #3b2410; stroke-width: 6px; fill: #ffd84a; }
+  #cartel[data-bueno="0"] { fill: #ff8a7a; }
+  #cartel.salta { animation: salta .5s ease-out; }
+  @keyframes salta { from { opacity: 0; font-size: 12px; } to { opacity: 1; font-size: 34px; } }
+  #mira circle { fill: rgba(255,216,74,.25); stroke: #ffd84a; stroke-width: 2.5; stroke-dasharray: 5 4; }
+  #barraFuerza { height: 16px; border-radius: 9px; background: #e8d9bd; border: 2px solid var(--borde); overflow: hidden; position: relative; }
+  #barraFuerza::after { content: ""; position: absolute; left: 53.8%; width: 19.2%; top: 0; bottom: 0; background: rgba(46,139,62,.25); border-left: 2px solid rgba(46,139,62,.6); border-right: 2px solid rgba(46,139,62,.6); }
+  #fuerza { height: 100%; width: 0; background: linear-gradient(90deg, #f6c90e, #f39c12); }
+  #fuerza[data-pasado="1"] { background: linear-gradient(90deg, #f39c12, #e74c3c); }
+  #textoVisible { text-align: center; font-weight: 600; min-height: 2.9em; margin: 0; }
+  .teclas { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .teclas button { padding: 9px 14px; font-size: .95rem; }
+
+  .panel { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(43,33,24,.45); padding: 16px; z-index: 5; }
+  .caja { background: #fffaf0; border: 3px solid var(--borde); border-radius: 20px; padding: 22px; max-width: 420px; width: 100%; display: grid; gap: 12px; text-align: center; box-shadow: 0 18px 40px rgba(0,0,0,.25); }
+  .caja h2 { margin: 0; font-size: 1.8rem; }
+  #ayuda .caja { text-align: left; max-width: 560px; max-height: 90vh; overflow: auto; }
+  #ayuda h3 { margin: 6px 0 0; }
+  #ayuda ul { margin: 4px 0; padding-left: 22px; }
+  .sonidos { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+  .sonidos button { padding: 9px 10px; font-size: .95rem; }
+  .campo { display: grid; gap: 4px; text-align: left; font-weight: 600; }
+  .campo input { font: inherit; padding: 10px 12px; border-radius: 10px; border: 2px solid var(--borde); background: #fff; }
+  .estado { font-weight: 700; color: var(--verde); min-height: 1.4em; margin: 0; }
+  .oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  [hidden] { display: none !important; }
+  @media (max-width: 480px) { h1 { font-size: 2.1rem; } .tiro { width: 11px; height: 11px; } }
+</style>
+</head>
+<body>
+<main role="application" aria-label="Penales">
+  <div id="aviso1" class="oculto" aria-live="assertive" aria-atomic="true"></div>
+  <div id="aviso2" class="oculto" aria-live="assertive" aria-atomic="true"></div>
+
+  <section id="inicio">
+    <h1>Pena<span>les</span></h1>
+    <p class="sub">Tandas de penales para jugar con el oído.</p>
+    <div class="menu">
+      <button id="bTanda" class="principal">Tanda de penales</button>
+      <button id="bCopa">Copa</button>
+      <button id="bPracPatear">Práctica de pateo</button>
+      <button id="bPracAtajar">Práctica de atajar</button>
+      <button id="bOnline">Jugar online</button>
+      <button id="bAyuda">Cómo se juega</button>
+    </div>
+    <p class="version">Versión 1.0</p>
+  </section>
+
+  <section id="juego" hidden>
+    <div id="zonaJuego" tabindex="-1" aria-label="Cancha">
+      <div id="ronda" aria-hidden="true"></div>
+      <div id="marcador" aria-hidden="true">
+        <div class="fila"><span class="eq" id="eq0">Vos</span><span class="puntos" id="p0"></span><b id="g0">0</b></div>
+        <div class="fila"><span class="eq" id="eq1">Rival</span><span class="puntos" id="p1"></span><b id="g1">0</b></div>
+      </div>
+      <svg id="cancha" viewBox="0 0 400 300" aria-hidden="true">
+        <defs>
+          <linearGradient id="gCielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc4f2"/><stop offset="1" stop-color="#cfeaff"/></linearGradient>
+          <pattern id="gPasto" width="400" height="40" patternUnits="userSpaceOnUse"><rect width="400" height="20" fill="#5fa84f"/><rect y="20" width="400" height="20" fill="#6db85b"/></pattern>
+          <pattern id="gRed" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M0 0L10 10M10 0L0 10" stroke="#ffffff" stroke-opacity=".55" stroke-width="1"/></pattern>
+          <radialGradient id="gPelota" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d8d8d8"/></radialGradient>
+        </defs>
+        <rect width="400" height="110" fill="url(#gCielo)"/>
+        <rect y="6" width="400" height="92" fill="#8a6b4a"/>
+        <g id="tribuna"></g>
+        <rect y="96" width="400" height="10" fill="#e9e1cf"/>
+        <rect y="104" width="400" height="196" fill="url(#gPasto)"/>
+        <path d="M30 186 H370 M100 186 L70 236 H330 L300 186" stroke="#fff" stroke-width="2.5" fill="none" stroke-opacity=".85"/>
+        <circle cx="200" cy="262" r="2.5" fill="#fff"/>
+        <rect x="80" y="66" width="240" height="120" fill="#ffffff" fill-opacity=".12"/>
+        <rect x="80" y="66" width="240" height="120" fill="url(#gRed)"/>
+        <g id="mira" style="display:none"><circle r="17"/></g>
+        <g id="arquero">
+          <rect x="186" y="168" width="11" height="18" rx="3" fill="#1d3557"/>
+          <rect x="203" y="168" width="11" height="18" rx="3" fill="#1d3557"/>
+          <rect x="182" y="132" width="36" height="40" rx="8" fill="#f4a020"/>
+          <rect x="162" y="134" width="22" height="9" rx="4" fill="#f4a020" transform="rotate(-35 184 138)"/>
+          <rect x="216" y="134" width="22" height="9" rx="4" fill="#f4a020" transform="rotate(35 216 138)"/>
+          <circle cx="166" cy="124" r="6" fill="#3fb24a"/>
+          <circle cx="234" cy="124" r="6" fill="#3fb24a"/>
+          <circle cx="200" cy="121" r="11" fill="#f1c27d"/>
+          <path d="M189 117 Q200 106 211 117" fill="#4a2c17"/>
+        </g>
+        <rect x="76" y="62" width="6" height="126" rx="2" fill="#ffffff" stroke="#bbb"/>
+        <rect x="318" y="62" width="6" height="126" rx="2" fill="#ffffff" stroke="#bbb"/>
+        <rect x="76" y="62" width="248" height="6" rx="2" fill="#ffffff" stroke="#bbb"/>
+        <g id="pelota">
+          <circle cx="200" cy="262" r="10" fill="url(#gPelota)" stroke="#555" stroke-width="1"/>
+          <path d="M200 256 l5 3.5 -2 6 h-6 l-2 -6z" fill="#333"/>
+        </g>
+        <text id="cartel" x="200" y="230"></text>
+      </svg>
+      <div id="barraFuerza" aria-hidden="true" hidden><div id="fuerza"></div></div>
+      <p id="textoVisible" aria-hidden="true"></p>
+    </div>
+  </section>
+
+  <section id="fin" class="panel" hidden>
+    <div class="caja">
+      <h2 id="finTitulo"></h2>
+      <p id="finTexto"></p>
+      <button id="finSeguir" class="principal"></button>
+      <button id="finMenu">Volver al menú</button>
+    </div>
+  </section>
+
+  <section id="pausa" class="panel" hidden>
+    <div class="caja">
+      <h2>Pausa</h2>
+      <p id="pausaTexto" hidden>En online el partido sigue mientras estás acá.</p>
+      <button id="pSeguir" class="principal">Seguir</button>
+      <button id="pMenu">Volver al menú</button>
+    </div>
+  </section>
+
+  <section id="online" class="panel" hidden>
+    <div class="caja">
+      <h2>Jugar online</h2>
+      <p>Uno contra uno. Uno crea la mesa y le pasa el código al otro.</p>
+      <label class="campo">Tu nombre <input id="oNombre" maxlength="20" autocomplete="nickname"></label>
+      <button id="oCrear" class="principal">Crear mesa</button>
+      <label class="campo">Código de la mesa <input id="oCodigo" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+      <button id="oUnirme">Unirme a la mesa</button>
+      <p id="oEstado" class="estado"></p>
+      <button id="oVolver">Volver</button>
+    </div>
+  </section>
+
+  <section id="ayuda" class="panel" hidden>
+    <div class="caja">
+      <h2>Cómo se juega</h2>
+      <p>Se juega con el oído: lo que va a la izquierda suena en el oído izquierdo, lo que va a la derecha en el derecho, y cuanto más agudo, más arriba. Mejor con auriculares.</p>
+      <h3>Para patear</h3>
+      <ul>
+        <li>Mantené Espacio: el jugador corre y la fuerza sube con un tono. Soltalo para patear.</li>
+        <li>La fuerza justa está cerca del final del tono. Si te pasás, el tono se pone áspero y la pelota se va alta.</li>
+        <li>Cada penal arranca apuntando al medio. Cada flecha mueve la mira un lugar, y no hace falta mantenerlas: arriba y después derecha es el ángulo derecho; abajo y después izquierda, abajo a la izquierda. Podés apuntar antes o mientras corrés. Arriba suenan dos pitidos que suben, al medio un pitido, abajo dos golpes graves.</li>
+        <li>P, mientras corrés: la picás. Si el arquero se tira, es golazo; si se queda parado, te la ataja.</li>
+        <li>A, mientras corrés: paradinha. Frenás un momento y, si el arquero se tira antes, lo escuchás y pateás para el otro lado.</li>
+      </ul>
+      <h3>Para atajar</h3>
+      <ul>
+        <li>Escuchá la carrera: si corre rápido, viene fuerte; si corre lento, capaz te la pica.</li>
+        <li>Cada flecha mueve al arquero un lugar desde el medio, en cualquier orden: arriba y derecha, o derecha y arriba, es el ángulo derecho. Si apretaste una sin querer, la flecha contraria la deshace. Ojo: cuanto más tarde cambiás, más difícil llegar.</li>
+        <li>La pelota suena distinto según la altura: arriba es un silbido agudo que sube, al medio un zumbido parejo, abajo un ruido grave de pelota que pica en el pasto.</li>
+        <li>Sin tocar nada te quedás parado y cubrís el medio y abajo al medio.</li>
+        <li>Si te tirás antes de la patada llegás a los ángulos, pero el pateador te puede ver y cambiar.</li>
+      </ul>
+      <h3>Otras teclas</h3>
+      <ul>
+        <li>M: marcador. R: repetir lo último. H: teclas. Escape: pausa.</li>
+        <li>En el celular: tocá y mantené para correr, deslizá el dedo hacia donde querés patear y soltá. Para atajar, deslizá hacia donde te querés tirar.</li>
+      </ul>
+      <p>La compu aprende: si siempre hacés lo mismo, te lee.</p>
+      <h3>Escuchar los sonidos</h3>
+      <div class="sonidos">
+        <button data-pelota="a">Pelota arriba</button>
+        <button data-pelota="m">Pelota al medio</button>
+        <button data-pelota="b">Pelota abajo</button>
+        <button data-pelota="p">Picada</button>
+        <button data-pelota="m" data-lado="I">Pelota a la izquierda</button>
+        <button data-pelota="m" data-lado="D">Pelota a la derecha</button>
+        <button data-mira="aC">Mira arriba</button>
+        <button data-mira="mC">Mira al medio</button>
+        <button data-mira="bC">Mira abajo</button>
+      </div>
+      <button id="ayudaVolver" class="principal">Volver</button>
+    </div>
+  </section>
+</main>
+<script>
+// Penales: reglas, tiros, atajadas, rivales de la compu y tanda.
+(function (raiz) {
+  'use strict';
+
+  const FILAS = ['a', 'm', 'b'];
+  const COLS = ['I', 'C', 'D'];
+  const ZONAS = ['aI', 'aC', 'aD', 'mI', 'mC', 'mD', 'bI', 'bC', 'bD'];
+  const NOMBRE = {
+    aI: 'ángulo izquierdo', aC: 'arriba al medio', aD: 'ángulo derecho',
+    mI: 'a la izquierda', mC: 'al medio', mD: 'a la derecha',
+    bI: 'abajo a la izquierda', bC: 'abajo al medio', bD: 'abajo a la derecha'
+  };
+  const fila = z => z[0];
+  const col = z => z[1];
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+
+  // Flechas apretadas -> zona. Sin nada = al medio (el arquero se queda parado).
+  function zonaDeFlechas(f) {
+    const fl = f.arriba && !f.abajo ? 'a' : f.abajo && !f.arriba ? 'b' : 'm';
+    const c = f.izq && !f.der ? 'I' : f.der && !f.izq ? 'D' : 'C';
+    return fl + c;
+  }
+
+  // Tiempo que tarda el arquero en llegar a cada zona (segundos).
+  const ALCANCE = { mC: 0, bC: 0.12, aC: 0.14, mI: 0.2, mD: 0.2, bI: 0.22, bD: 0.22, aI: 0.3, aD: 0.3 };
+
+  // Qué tan bien cubre el arquero (zona a la que se tiró) la zona de la pelota.
+  function cobertura(d, b) {
+    if (d === 'mC') return { mC: 0.95, bC: 0.92, aC: 0.45 }[b] || 0; // quieto: medio y abajo al centro
+    if (d === 'bC') return { bC: 0.95, mC: 0.6 }[b] || 0;
+    if (d === 'aC') return { aC: 0.92, mC: 0.6 }[b] || 0;
+    if (col(d) !== col(b)) return 0;
+    if (d === b) return fila(b) === 'a' ? 0.62 : fila(b) === 'b' ? 0.82 : 0.86;
+    const dist = Math.abs(FILAS.indexOf(fila(d)) - FILAS.indexOf(fila(b)));
+    return dist === 1 ? 0.42 : 0.1;
+  }
+
+  // Probabilidad de atajar.
+  // o: {dive, ball, fuerza, adelantado, tarde(seg), picada, reflejos(0..1, solo compu), grandote}
+  function probAtajada(o) {
+    if (o.picada) return (o.dive === 'mC' || o.dive === 'aC' || o.dive === 'bC') ? 0.9 : 0;
+    const f = Math.min(o.fuerza, 1.2);
+    let p = cobertura(o.dive, o.ball);
+    const distCol = Math.abs(COLS.indexOf(col(o.dive)) - COLS.indexOf(col(o.ball)));
+    if (p === 0 && f < 0.35 && fila(o.dive) === fila(o.ball) && distCol === 1) p = 0.35;
+    if (p > 0 && o.grandote) p += 0.1;
+    p *= 1.18 - 0.42 * f;
+    if (o.adelantado && fila(o.ball) === 'a' && col(o.ball) !== 'C') p += 0.1;
+    if (p === 0 && o.reflejos && !(fila(o.ball) === 'a' && col(o.ball) !== 'C')) {
+      p = o.reflejos * 0.3 * (1.1 - f);
+    }
+    if (o.tarde > 0) p *= o.tarde < 0.08 ? 0.45 : 0;
+    return clamp(p, 0, 0.97);
+  }
+
+  // Lo que pasa con el tiro antes de llegar al arquero.
+  // t: {zona, fuerza, picada, paradinha, presion(0..1), precision(1 normal; menos es mejor)}
+  // resultado: 'arco' | 'afuera' | 'arriba' | 'palo' | 'travesaño'
+  function resolverTiro(t, rng = Math.random) {
+    const r = { zona: t.zona, pedida: t.zona, fuerza: t.fuerza, picada: !!t.picada, resultado: 'arco', debil: false };
+    if (t.picada) {
+      r.zona = 'mC';
+      const fallo = (0.05 + (t.presion || 0) * 0.04) * (t.precision || 1);
+      if (rng() < fallo) r.resultado = rng() < 0.5 ? 'travesaño' : 'arriba';
+      return r;
+    }
+    let z = t.zona;
+    const f = t.fuerza;
+    if (f > 1) {
+      const ex = f - 1;
+      if (fila(z) === 'a') {
+        if (rng() < 0.3 + ex * 2.2) { r.resultado = rng() < 0.2 ? 'travesaño' : 'arriba'; return r; }
+      } else if (rng() < 0.45 + ex * 1.6) {
+        z = (fila(z) === 'b' ? 'm' : 'a') + col(z);
+      }
+    }
+    r.zona = z;
+    if (f < 0.35) r.debil = true;
+    const c = col(z), fl = fila(z);
+    let m;
+    if (c === 'C') m = fl === 'a' ? 0.05 : 0.01;
+    else if (fl === 'a') m = 0.1 + Math.abs(f - 0.82) * 0.9;
+    else if (fl === 'b') m = 0.05 + Math.abs(f - 0.8) * 0.45;
+    else m = 0.04 + Math.abs(f - 0.8) * 0.3;
+    m += (t.presion || 0) * 0.06 + (t.paradinha ? 0.05 : 0);
+    m *= (t.precision || 1);
+    if (rng() < m) {
+      if (c === 'C') r.resultado = fl === 'a' ? 'travesaño' : 'arriba';
+      else if (rng() < 0.38) r.resultado = (fl === 'a' && rng() < 0.4) ? 'travesaño' : 'palo';
+      else r.resultado = 'afuera';
+    }
+    return r;
+  }
+
+  // Segundos que tarda la pelota en llegar al arco.
+  function duracionVuelo(f, picada, nivel = 2, presion = 0) {
+    if (picada) return 1.4;
+    const base = 1.15 - 0.5 * Math.min(f, 1.1);
+    const porNivel = [1.2, 1.15, 1, 0.92, 0.85][nivel] || 1;
+    return Math.max(0.4, base * porNivel * (1 - 0.08 * presion));
+  }
+
+  // Memoria de lo que hace el jugador (la compu aprende).
+  function nuevaMemoria() {
+    const cero = () => Object.fromEntries(ZONAS.map(z => [z, 0]));
+    return { tiros: cero(), totalTiros: 0, picadas: 0, dives: cero(), totalDives: 0, adelantos: 0 };
+  }
+
+  function sortear(pesos, rng) {
+    const total = pesos.reduce((s, [, w]) => s + Math.max(0, w), 0);
+    let x = rng() * total;
+    for (const [k, w] of pesos) { x -= Math.max(0, w); if (x <= 0) return k; }
+    return pesos[pesos.length - 1][0];
+  }
+
+  // ---- Rivales ----
+  const TIPOS_PATEADOR = {
+    derecho: { lado: 'D', fuerza: 0.8, precision: 1, picada: 0.03, amague: 0.05, viveza: 0.4, ritmo: 0.3 },
+    zurdo: { lado: 'I', fuerza: 0.8, precision: 1, picada: 0.03, amague: 0.05, viveza: 0.4, ritmo: 0.3 },
+    potente: { fuerza: 0.98, precision: 1.2, picada: 0, amague: 0, viveza: 0.2, ritmo: 0.22, bajo: true },
+    especialista: { fuerza: 0.83, precision: 0.5, esquinas: true, picada: 0.04, amague: 0.08, viveza: 0.7, ritmo: 0.3 },
+    nervioso: { fuerza: 0.76, precision: 1.7, picada: 0.02, amague: 0.02, viveza: 0.2, ritmo: 0.28, irregular: true },
+    picador: { fuerza: 0.7, precision: 1, picada: 0.3, amague: 0.1, viveza: 0.6, ritmo: 0.4 },
+    amagador: { fuerza: 0.8, precision: 1.1, picada: 0.08, amague: 0.55, viveza: 0.8, ritmo: 0.32 }
+  };
+  const TIPOS_ARQUERO = {
+    reflejos: { reflejos: 0.2, lectura: 0, nervios: 0.2 },
+    nervioso: { reflejos: 0, lectura: 0, nervios: 0.75 },
+    lector: { reflejos: 0, lectura: 0.3, nervios: 0.25 },
+    grandote: { reflejos: 0, lectura: 0, nervios: 0.3, grandote: true }
+  };
+  const NOMBRES = ['Cacho', 'Coco', 'Tito', 'Pocho', 'Lalo', 'Beto', 'Nacho', 'Pato', 'Mono', 'Flaco', 'Gringo',
+    'Ruso', 'Chino', 'Tano', 'Pipa', 'Toto', 'Kike', 'Rulo', 'Colo', 'Lucho', 'Facu', 'Juanchi', 'Pela', 'Bocha', 'Cholo', 'Tincho', 'Polaco', 'Manu'];
+  const ARQUEROS = ['el Gato', 'el Pulpo', 'el Muro', 'Paredón', 'el Mono', 'el Loco', 'el Pato', 'Manotas', 'el Vasco', 'el Cabezón'];
+  const EQUIPOS = ['Social La Loma', 'Atlético Villa Rosa', 'Sportivo Puente Viejo', 'Unión del Sur', 'Juventud Unida',
+    'Defensores del Barrio', 'Estrella del Oeste', 'Deportivo La Estación', 'Los Andes del Bajo', 'Fomento Las Acacias'];
+
+  function mezclar(a, rng) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+  function generarEquipo(nivel = 2, rng = Math.random, nombre) {
+    const nombres = mezclar(NOMBRES, rng);
+    const tipos = Object.keys(TIPOS_PATEADOR);
+    const pateadores = [];
+    for (let i = 0; i < 5; i++) {
+      const tipo = tipos[Math.floor(rng() * tipos.length)];
+      pateadores.push({ nombre: nombres[i], tipo, ...ajustarPateador(TIPOS_PATEADOR[tipo], nivel) });
+    }
+    const tiposA = Object.keys(TIPOS_ARQUERO);
+    const tipoA = tiposA[Math.floor(rng() * tiposA.length)];
+    const ta = TIPOS_ARQUERO[tipoA];
+    const arquero = {
+      nombre: ARQUEROS[Math.floor(rng() * ARQUEROS.length)], tipo: tipoA,
+      reflejos: clamp(0.25 + nivel * 0.12 + ta.reflejos, 0, 1),
+      lectura: clamp(0.15 + nivel * 0.18 + ta.lectura, 0, 1),
+      nervios: ta.nervios, grandote: !!ta.grandote
+    };
+    return { nombre: nombre || EQUIPOS[Math.floor(rng() * EQUIPOS.length)], nivel, pateadores, arquero };
+  }
+
+  function ajustarPateador(p, nivel) {
+    return {
+      ...p,
+      viveza: clamp(p.viveza + (nivel - 2) * 0.15, 0, 1),
+      precision: p.precision * (1 - (nivel - 2) * 0.12),
+      lectura: clamp(0.15 + nivel * 0.2, 0, 1)
+    };
+  }
+
+  // Frecuencia suavizada de lo que hizo el jugador.
+  function frec(conteo, total, z, lectura) {
+    return (lectura * conteo[z] + 1) / (lectura * total + ZONAS.length);
+  }
+
+  // La compu elige cómo patear (contra el jugador que ataja).
+  function pateadorElige(p, mem, rng = Math.random) {
+    const pesos = ZONAS.map(z => {
+      let w = { aI: 0.8, aC: 0.35, aD: 0.8, mI: 1, mC: 0.45, mD: 1, bI: 1.2, bC: 0.55, bD: 1.2 }[z];
+      if (p.esquinas && col(z) !== 'C') w *= fila(z) === 'm' ? 0.8 : 1.7;
+      if (p.bajo) w *= fila(z) === 'b' ? 1.6 : fila(z) === 'a' ? 0.5 : 1;
+      if (p.lado && col(z) === p.lado) w *= 2.4;
+      // Evita donde el jugador suele tirarse
+      let cubierto = 0;
+      for (const d of ZONAS) cubierto += frec(mem.dives, mem.totalDives, d, p.lectura) * cobertura(d, z);
+      w *= Math.max(0.08, 1 - p.lectura * cubierto * 1.4);
+      return [z, w];
+    });
+    const zona = sortear(pesos, rng);
+    const tasaAdelanto = mem.totalDives ? mem.adelantos / mem.totalDives : 0;
+    const tasaQuieto = mem.totalDives ? (mem.dives.mC + mem.dives.bC + mem.dives.aC) / mem.totalDives : 0.3;
+    let probPicada = p.picada + tasaAdelanto * 0.25 * p.lectura - tasaQuieto * 0.15 * p.lectura;
+    const picada = rng() < clamp(probPicada, 0, 0.6);
+    const paradinha = !picada && rng() < p.amague;
+    const ruido = p.irregular ? 0.18 : 0.08;
+    const fuerza = clamp(p.fuerza + (rng() * 2 - 1) * ruido, 0.3, 1.15);
+    const ritmo = p.ritmo * (picada ? 1.35 : 1);
+    return { zona, picada, paradinha, fuerza, ritmo };
+  }
+
+  // Si el jugador se tiró antes de la patada, el pateador vivo cambia.
+  function reaccionarAdelanto(p, plan, dive, rng = Math.random) {
+    if (rng() >= p.viveza) return plan;
+    if (col(dive) !== 'C' && rng() < 0.35) return { ...plan, picada: true, zona: 'mC' };
+    const opuesta = col(dive) === 'I' ? 'D' : col(dive) === 'D' ? 'I' : (rng() < 0.5 ? 'I' : 'D');
+    const fl = rng() < 0.6 ? 'b' : 'm';
+    return { ...plan, picada: false, zona: fl + opuesta };
+  }
+
+  // La compu (arquero) elige dónde tirarse contra el tiro del jugador.
+  function arqueroElige(a, mem, rng = Math.random) {
+    const k = 2 + a.lectura * 6;
+    const tasaPicada = mem.totalTiros ? mem.picadas / mem.totalTiros : 0;
+    const pesos = ZONAS.map(d => {
+      let esperado = 0;
+      for (const z of ZONAS) esperado += frec(mem.tiros, mem.totalTiros, z, a.lectura) * cobertura(d, z);
+      let w = Math.exp(k * esperado);
+      if (d === 'mC') w *= 1 + tasaPicada * 4 * a.lectura;
+      return [d, w];
+    });
+    return sortear(pesos, rng);
+  }
+
+  // ---- Tanda ----
+  class Tanda {
+    constructor(primero = 0) { this.goles = [[], []]; this.primero = primero; }
+    cuenta(e) { return this.goles[e].filter(Boolean).length; }
+    tiros(e) { return this.goles[e].length; }
+    quienPatea() {
+      const a = this.tiros(this.primero), b = this.tiros(1 - this.primero);
+      return a === b ? this.primero : 1 - this.primero;
+    }
+    registrar(e, gol) { this.goles[e].push(!!gol); }
+    ganador() {
+      const a = this.cuenta(0), b = this.cuenta(1), ka = this.tiros(0), kb = this.tiros(1);
+      if (ka <= 5 && kb <= 5) {
+        if (a + (5 - ka) < b) return 1;
+        if (b + (5 - kb) < a) return 0;
+        if (ka === 5 && kb === 5 && a !== b) return a > b ? 0 : 1;
+        return null;
+      }
+      if (ka === kb && a !== b) return a > b ? 0 : 1;
+      return null;
+    }
+    terminada() { return this.ganador() !== null; }
+    muerteSubita() { return this.tiros(0) >= 5 && this.tiros(1) >= 5; }
+    // ¿El próximo penal puede definir la tanda?
+    esDecisivo(e) {
+      for (const g of [true, false]) {
+        const t = new Tanda(this.primero);
+        t.goles = [this.goles[0].slice(), this.goles[1].slice()];
+        t.registrar(e, g);
+        if (t.terminada()) return true;
+      }
+      return false;
+    }
+  }
+
+  const API = {
+    FILAS, COLS, ZONAS, NOMBRE, fila, col, zonaDeFlechas, ALCANCE, cobertura, probAtajada,
+    resolverTiro, duracionVuelo, nuevaMemoria, generarEquipo, pateadorElige, reaccionarAdelanto,
+    arqueroElige, Tanda, EQUIPOS, NOMBRES, TIPOS_PATEADOR, mezclar
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+  else raiz.Penales = API;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+// Penales: todos los sonidos, hechos en el momento (sin archivos).
+// Izquierda/derecha = oído izquierdo/derecho. Más agudo = más arriba.
+(function (raiz) {
+  'use strict';
+  let ctx = null, master = null, ruidoBuf = null, hinchada = null, latido = null;
+  let apagado = false;
+
+  const PAN = { I: -0.85, C: 0, D: 0.85 };
+  const ALTURA = { a: 880, m: 587, b: 392 };
+
+  function iniciar() {
+    if (apagado) return;
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) { apagado = true; return; }
+      ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = 0.9;
+      const comp = ctx.createDynamicsCompressor();
+      master.connect(comp); comp.connect(ctx.destination);
+      ruidoBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const d = ruidoBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      crearHinchada();
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+  }
+  function listo() { return !!ctx && !apagado; }
+
+  function salida(pan) {
+    const g = ctx.createGain();
+    if (ctx.createStereoPanner) {
+      const p = ctx.createStereoPanner(); p.pan.value = pan || 0;
+      g.connect(p); p.connect(master); g._pan = p.pan;
+    } else g.connect(master);
+    return g;
+  }
+
+  function tono(freq, dur, o = {}) {
+    if (!listo()) return;
+    const t = ctx.currentTime + (o.t || 0);
+    const osc = ctx.createOscillator();
+    osc.type = o.tipo || 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+    if (o.freqFin) osc.frequency.exponentialRampToValueAtTime(o.freqFin, t + dur);
+    const g = salida(o.pan);
+    const vol = o.vol == null ? 0.3 : o.vol;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + (o.ataque || 0.005));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g); osc.start(t); osc.stop(t + dur + 0.05);
+    return osc;
+  }
+
+  function ruido(dur, o = {}) {
+    if (!listo()) return;
+    const t = ctx.currentTime + (o.t || 0);
+    const src = ctx.createBufferSource();
+    src.buffer = ruidoBuf; src.loop = true;
+    const f = ctx.createBiquadFilter();
+    f.type = o.filtro || 'bandpass';
+    f.frequency.setValueAtTime(o.freq || 1000, t);
+    if (o.freqFin) f.frequency.exponentialRampToValueAtTime(o.freqFin, t + dur);
+    f.Q.value = o.q == null ? 1 : o.q;
+    const g = salida(o.pan);
+    const vol = o.vol == null ? 0.3 : o.vol;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + (o.ataque || 0.005));
+    if (o.sostener) g.gain.setValueAtTime(vol, t + dur * o.sostener);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f); f.connect(g); src.start(t, Math.random()); src.stop(t + dur + 0.05);
+  }
+
+  // ---- Hinchada de fondo (sube con la presión) ----
+  function crearHinchada() {
+    const src = ctx.createBufferSource(); src.buffer = ruidoBuf; src.loop = true;
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 650; f.Q.value = 0.5;
+    const f2 = ctx.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = 2200;
+    const g = ctx.createGain(); g.gain.value = 0;
+    const lfo = ctx.createOscillator(); lfo.frequency.value = 0.23;
+    const lg = ctx.createGain(); lg.gain.value = 0.012;
+    lfo.connect(lg); lg.connect(g.gain); lfo.start();
+    src.connect(f); f.connect(f2); f2.connect(g); g.connect(master); src.start();
+    hinchada = g;
+  }
+  function presion(p) {
+    if (!listo()) return;
+    hinchada.gain.setTargetAtTime(p < 0 ? 0 : 0.035 + p * 0.07, ctx.currentTime, 0.6);
+  }
+  function corazon(on) {
+    if (latido) { clearInterval(latido); latido = null; }
+    if (on && listo()) {
+      const golpe = () => { tono(58, 0.12, { vol: 0.5 }); tono(52, 0.12, { vol: 0.35, t: 0.18 }); };
+      golpe(); latido = setInterval(golpe, 850);
+    }
+  }
+
+  // ---- Sonidos del juego ----
+  function silbato() {
+    if (!listo()) return;
+    const t0 = ctx.currentTime;
+    [[0, 0.18], [0.28, 0.5]].forEach(([d, dur]) => {
+      const osc = ctx.createOscillator(); osc.type = 'triangle'; osc.frequency.value = 2600;
+      const lfo = ctx.createOscillator(); lfo.frequency.value = 28;
+      const lg = ctx.createGain(); lg.gain.value = 140; lfo.connect(lg); lg.connect(osc.frequency);
+      const g = salida(0);
+      g.gain.setValueAtTime(0.0001, t0 + d); g.gain.exponentialRampToValueAtTime(0.16, t0 + d + 0.02);
+      g.gain.setValueAtTime(0.16, t0 + d + dur - 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + dur);
+      osc.connect(g); osc.start(t0 + d); lfo.start(t0 + d); osc.stop(t0 + d + dur + 0.05); lfo.stop(t0 + d + dur + 0.05);
+    });
+  }
+  function paso(vol = 0.3) {
+    ruido(0.07, { filtro: 'lowpass', freq: 500, vol: vol * 0.8 });
+    tono(95, 0.06, { freqFin: 60, vol: vol });
+  }
+  function patada() {
+    tono(170, 0.14, { freqFin: 45, vol: 0.85 });
+    ruido(0.04, { filtro: 'highpass', freq: 1800, vol: 0.35 });
+  }
+  // La pelota viaja: acercándose (cuando atajás) o alejándose (cuando pateás).
+  // Cada altura suena distinto:
+  //  arriba (a): silbido agudo que va subiendo
+  //  medio  (m): zumbido parejo de tono medio
+  //  abajo  (b): ruido grave de pelota que pica y rueda por el pasto
+  //  x: se va por arriba del travesaño (silbido muy agudo que se escapa)
+  //  p: picada (sube y baja despacio)
+  function pelota(dur, panFin, altura, acercandose) {
+    if (!listo()) return;
+    const t = ctx.currentTime;
+    const g = salida(panFin * 0.45);
+    const v0 = acercandose ? 0.08 : 0.4, v1 = acercandose ? 0.5 : 0.06;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(v0, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(v1, t + dur);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.06);
+    if (g._pan) { g._pan.setValueAtTime(panFin * 0.45, t); g._pan.linearRampToValueAtTime(panFin, t + dur * 0.6); }
+    const fin = t + dur + 0.1;
+    const osc = ctx.createOscillator();
+    const go = ctx.createGain();
+    osc.connect(go); go.connect(g);
+    const src = ctx.createBufferSource(); src.buffer = ruidoBuf; src.loop = true;
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass';
+    const gr = ctx.createGain();
+    src.connect(f); f.connect(gr); gr.connect(g);
+    if (altura === 'a' || altura === 'x') {
+      const alto = altura === 'x';
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(alto ? 1500 : 1050, t);
+      osc.frequency.exponentialRampToValueAtTime(alto ? 2600 : 1750, t + dur);
+      const vib = ctx.createOscillator(); vib.frequency.value = 9;
+      const vg = ctx.createGain(); vg.gain.value = 25; vib.connect(vg); vg.connect(osc.frequency);
+      vib.start(t); vib.stop(fin);
+      go.gain.value = 0.6;
+      f.frequency.value = 3500; f.Q.value = 3; gr.gain.value = 0.25;
+    } else if (altura === 'b') {
+      osc.type = 'sawtooth'; osc.frequency.value = 75;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 320;
+      osc.disconnect(); osc.connect(lp); lp.connect(go);
+      go.gain.value = 0.9;
+      f.type = 'lowpass'; f.frequency.value = 500; f.Q.value = 0.7; gr.gain.value = 0.7;
+      // piques en el pasto
+      for (let k = 0.06; k < dur - 0.02; k += 0.13) {
+        const b = ctx.createOscillator(); b.frequency.setValueAtTime(110, t + k); b.frequency.exponentialRampToValueAtTime(55, t + k + 0.07);
+        const bg = ctx.createGain(); bg.gain.setValueAtTime(0.0001, t + k); bg.gain.exponentialRampToValueAtTime(0.9, t + k + 0.005); bg.gain.exponentialRampToValueAtTime(0.0001, t + k + 0.08);
+        b.connect(bg); bg.connect(g); b.start(t + k); b.stop(t + k + 0.1);
+      }
+    } else if (altura === 'p') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(450, t);
+      osc.frequency.exponentialRampToValueAtTime(1100, t + dur * 0.5);
+      osc.frequency.exponentialRampToValueAtTime(380, t + dur);
+      go.gain.value = 0.5;
+      f.frequency.value = 1200; f.Q.value = 1; gr.gain.value = 0.2;
+    } else {
+      osc.type = 'triangle'; osc.frequency.value = 520;
+      const am = ctx.createOscillator(); am.frequency.value = 22;
+      const ag = ctx.createGain(); ag.gain.value = 0.25; am.connect(ag); ag.connect(go.gain);
+      am.start(t); am.stop(fin);
+      go.gain.value = 0.5;
+      f.frequency.value = 1300; f.Q.value = 1.5; gr.gain.value = 0.45;
+    }
+    osc.start(t); src.start(t, Math.random()); osc.stop(fin); src.stop(fin);
+  }
+  // Sonido de la mira: arriba = dos pitidos que suben; medio = un pitido; abajo = dos golpes graves que bajan.
+  function apuntar(zona) {
+    const pan = PAN[zona[1]], h = zona[0];
+    if (h === 'a') {
+      tono(1100, 0.09, { pan, vol: 0.22 });
+      tono(1650, 0.13, { pan, vol: 0.22, t: 0.09 });
+    } else if (h === 'b') {
+      tono(160, 0.12, { pan, vol: 0.5, freqFin: 90 });
+      tono(120, 0.14, { pan, vol: 0.5, freqFin: 65, t: 0.12 });
+    } else {
+      tono(600, 0.16, { pan, vol: 0.25, tipo: 'triangle' });
+    }
+  }
+  // Fuerza: tono que sube mientras mantenés.
+  function carga() {
+    if (!listo()) return { poner() {}, parar() {} };
+    const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = 200;
+    const osc2 = ctx.createOscillator(); osc2.type = 'square'; osc2.frequency.value = 200;
+    const g2 = ctx.createGain(); g2.gain.value = 0;
+    const g = salida(0); g.gain.value = 0.0001;
+    g.gain.exponentialRampToValueAtTime(0.13, ctx.currentTime + 0.05);
+    osc.connect(g); osc2.connect(g2); g2.connect(g); osc.start(); osc2.start();
+    return {
+      poner(f) {
+        const fr = 200 * Math.pow(2, Math.min(f, 1.3) * 2.2);
+        osc.frequency.setTargetAtTime(fr, ctx.currentTime, 0.02);
+        osc2.frequency.setTargetAtTime(fr * 1.01, ctx.currentTime, 0.02);
+        g2.gain.setTargetAtTime(f > 1 ? 0.1 : 0, ctx.currentTime, 0.02);
+      },
+      parar() {
+        const t = ctx.currentTime;
+        g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value || 0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+        osc.stop(t + 0.08); osc2.stop(t + 0.08);
+      }
+    };
+  }
+  function estirada(pan) {
+    ruido(0.28, { freq: 1600, freqFin: 500, vol: 0.28, pan });
+    tono(75, 0.12, { freqFin: 50, vol: 0.45, pan, t: 0.3 });
+  }
+  function salto() { ruido(0.2, { freq: 900, freqFin: 1800, vol: 0.2 }); }
+  function red(pan) {
+    ruido(0.55, { freq: 3200, q: 0.6, vol: 0.28, pan });
+    ruido(0.35, { filtro: 'lowpass', freq: 700, vol: 0.2, pan, t: 0.03 });
+  }
+  function guantes(pan) {
+    tono(130, 0.12, { freqFin: 70, vol: 0.8, pan });
+    ruido(0.06, { filtro: 'lowpass', freq: 900, vol: 0.45, pan });
+  }
+  function palo(pan) {
+    [960, 1440, 2230, 3010].forEach((f, i) => tono(f, 1.1 - i * 0.2, { vol: 0.16 - i * 0.03, pan }));
+  }
+  function festejo() {
+    ruido(2.6, { freq: 900, q: 0.4, vol: 0.5, ataque: 0.25, sostener: 0.4 });
+    ruido(2.2, { freq: 2200, q: 0.5, vol: 0.15, ataque: 0.3, sostener: 0.3 });
+  }
+  function lamento() {
+    ruido(1.4, { freq: 520, freqFin: 300, q: 1.2, vol: 0.3, ataque: 0.15 });
+  }
+  function uhh() {
+    ruido(1.2, { freq: 480, freqFin: 360, q: 1.5, vol: 0.32, ataque: 0.1 });
+  }
+  // Cierres cortos para cada penal y para la tanda
+  function bien() { tono(523, 0.18, { vol: 0.18, tipo: 'triangle' }); tono(784, 0.3, { vol: 0.18, tipo: 'triangle', t: 0.14 }); }
+  function mal() { tono(330, 0.2, { vol: 0.18, tipo: 'triangle' }); tono(220, 0.35, { vol: 0.18, tipo: 'triangle', t: 0.16 }); }
+  function ganarTanda() {
+    [523, 659, 784, 1046].forEach((f, i) => tono(f, 0.35, { vol: 0.2, tipo: 'triangle', t: i * 0.13 }));
+    festejo();
+  }
+  function perderTanda() {
+    [440, 392, 349, 262].forEach((f, i) => tono(f, 0.4, { vol: 0.2, tipo: 'triangle', t: i * 0.17 }));
+  }
+
+  raiz.Sonido = {
+    iniciar, apagar() { apagado = true; }, PAN, ALTURA, presion, corazon, silbato, paso, patada, pelota,
+    apuntar, carga, estirada, salto, red, guantes, palo, festejo, lamento, uhh, bien, mal, ganarTanda, perderTanda
+  };
+})(window);
+
+</script>
+<script>
+// Penales: el juego (pantallas, teclas, penales, tanda, copa y práctica).
+(function () {
+  'use strict';
+  const P = window.Penales, S = window.Sonido;
+  const Q = new URLSearchParams(location.search);
+  const PRUEBA = Q.has('prueba');
+  const VEL = PRUEBA ? (Number(Q.get('prueba')) || 20) : 1;
+  if (PRUEBA) S.apagar();
+  const $ = s => document.querySelector(s);
+  const col = P.col, fila = P.fila;
+
+  const AL = {
+    aI: 'al ángulo izquierdo', aC: 'arriba al medio', aD: 'al ángulo derecho',
+    mI: 'a la izquierda', mC: 'al medio', mD: 'a la derecha',
+    bI: 'abajo a la izquierda', bC: 'abajo al medio', bD: 'abajo a la derecha'
+  };
+  const ZONA_CORTA = {
+    aI: 'Ángulo izquierdo', aC: 'Arriba', aD: 'Ángulo derecho', mI: 'Izquierda', mC: 'Medio',
+    mD: 'Derecha', bI: 'Abajo izquierda', bC: 'Abajo', bD: 'Abajo derecha'
+  };
+  const RONDAS = ['Octavos de final', 'Cuartos de final', 'Semifinal', 'Final'];
+  const RONDA_EN = ['octavos de final', 'cuartos de final', 'la semifinal', 'la final'];
+  const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+
+  class Cancelado extends Error {}
+  const J = {
+    token: 0, fase: 'menu', modo: null, nivel: 2, flechas: { arriba: false, abajo: false, izq: false, der: false },
+    mem: P.nuevaMemoria(), tanda: null, rival: null, copa: null, practica: null, bucle: null,
+    patear: null, atajar: null, ultimo: '', jugando: false
+  };
+  window.__penales = J;
+
+  function esperar(ms) {
+    const tk = J.token;
+    return new Promise((res, rej) => setTimeout(() => (tk === J.token ? res() : rej(new Cancelado())), ms / VEL));
+  }
+  const ahora = () => performance.now() * VEL / 1000;
+  function chequear(tk) { if (tk !== J.token) throw new Cancelado(); }
+
+  // ---- Lector de pantalla ----
+  let alterno = false;
+  function anunciar(t) {
+    J.ultimo = t;
+    const a = $('#aviso1'), b = $('#aviso2');
+    const usar = alterno ? b : a, otro = alterno ? a : b;
+    alterno = !alterno;
+    otro.textContent = '';
+    usar.textContent = t;
+    $('#textoVisible').textContent = t;
+  }
+
+  // ---- Pantallas ----
+  function mostrar(id) {
+    for (const s of ['inicio', 'juego', 'fin', 'pausa', 'ayuda', 'online']) $('#' + s).hidden = s !== id && !(id === 'pausa' && s === 'juego') && !(id === 'fin' && s === 'juego');
+    document.body.dataset.pantalla = id;
+  }
+
+  // ---- Vista (para los que ven) ----
+  const X = { I: 125, C: 200, D: 275 }, Y = { a: 88, m: 122, b: 160 };
+  function destinoDe(t) {
+    const c = col(t.zona), f = fila(t.zona);
+    const d = { x: X[c], y: Y[f], pan: S.PAN[c], frec: f };
+    if (t.picada) { d.x = 200; d.y = 104; d.frec = 'p'; d.pan = 0; }
+    if (t.resultado === 'afuera') { d.x = c === 'I' ? 48 : 352; d.pan = c === 'I' ? -1 : 1; }
+    if (t.resultado === 'arriba') { d.y = 36; d.frec = 'x'; }
+    if (t.resultado === 'palo') d.x = c === 'I' ? 80 : 320;
+    if (t.resultado === 'travesaño') d.y = 64;
+    return d;
+  }
+  function verPelota(d, dur) {
+    const p = $('#pelota');
+    p.style.transition = `transform ${dur / VEL}s cubic-bezier(.25,.7,.45,1)`;
+    const s = 0.55;
+    p.style.transform = `translate(${d.x - 200}px, ${d.y - 262}px) scale(${s})`;
+  }
+  function verArquero(z) {
+    const a = $('#arquero');
+    let t = '';
+    if (z === 'aC') t = 'translate(0px,-26px)';
+    else if (z === 'bC') t = 'translate(0px,10px) scale(1.1,0.8)';
+    else if (z !== 'mC') {
+      const dx = (X[col(z)] - 200) * 0.95, dy = (Y[fila(z)] - 140) * 0.9;
+      t = `translate(${dx}px,${dy}px) rotate(${col(z) === 'I' ? -72 : 72}deg)`;
+    }
+    a.style.transform = t;
+  }
+  function verMira(z) {
+    const m = $('#mira');
+    m.style.display = '';
+    m.setAttribute('transform', `translate(${X[col(z)]},${Y[fila(z)]})`);
+  }
+  function reiniciarVista(modo) {
+    const p = $('#pelota');
+    p.style.transition = 'none'; p.style.transform = '';
+    $('#arquero').style.transform = '';
+    $('#mira').style.display = modo === 'patear' ? '' : 'none';
+    if (modo === 'patear') verMira('mC');
+    $('#cancha').dataset.modo = modo;
+    $('#cartel').textContent = '';
+    $('#fuerza').style.width = '0%';
+    $('#barraFuerza').hidden = modo !== 'patear';
+  }
+  function cartel(t, bueno) {
+    const c = $('#cartel'); c.textContent = t; c.dataset.bueno = bueno ? '1' : '0';
+    c.classList.remove('salta'); void c.getBBox?.(); c.classList.add('salta');
+  }
+
+  function pintarMarcador() {
+    const t = J.tanda;
+    $('#eq1').textContent = J.rival ? J.rival.nombre : 'Arquero';
+    for (const e of [0, 1]) {
+      const cont = $('#p' + e);
+      cont.textContent = '';
+      const tiros = t ? t.goles[e] : [];
+      const n = Math.max(5, tiros.length);
+      for (let i = 0; i < n; i++) {
+        const s = document.createElement('span');
+        s.className = 'tiro ' + (i < tiros.length ? (tiros[i] ? 'gol' : 'nogol') : '');
+        cont.appendChild(s);
+      }
+      $('#g' + e).textContent = t ? t.cuenta(e) : 0;
+    }
+    if (J.practica) {
+      $('#p0').textContent = ''; $('#p1').textContent = '';
+      $('#g0').textContent = J.practica.buenos; $('#g1').textContent = J.practica.total;
+      $('#eq0').textContent = J.modo === 'pp' ? 'Goles' : 'Atajadas';
+      $('#eq1').textContent = 'Penales';
+    } else $('#eq0').textContent = 'Vos';
+  }
+  function marcadorCorto() { const t = J.tanda; return `${t.cuenta(0)} a ${t.cuenta(1)}.`; }
+  function decirMarcador() {
+    if (J.practica) {
+      anunciar(`${J.modo === 'pp' ? 'Goles' : 'Atajadas'}: ${J.practica.buenos} de ${J.practica.total}.`);
+      return;
+    }
+    const t = J.tanda; if (!t) return;
+    let txt = `Vos ${t.cuenta(0)} de ${t.tiros(0)}. ${J.rival.nombre} ${t.cuenta(1)} de ${t.tiros(1)}.`;
+    if (t.muerteSubita()) txt += ' Muerte súbita.';
+    if (J.copa) txt = RONDAS[J.copa.ronda] + '. ' + txt;
+    anunciar(txt);
+  }
+
+  // ---- Teclas ----
+  const FLECHA = { ArrowUp: 'arriba', ArrowDown: 'abajo', ArrowLeft: 'izq', ArrowRight: 'der' };
+  const AYUDA = 'Patear: mantené Espacio para correr y cargar la fuerza, y soltalo para patear. ' +
+    'Cada flecha mueve la mira un lugar, sin mantenerla. Arranca al medio. P la picás. A hace la paradinha. ' +
+    'Atajar: cada flecha mueve al arquero un lugar, en cualquier orden. Sin tocar nada te quedás en el medio. ' +
+    'M marcador, R repetir, Escape pausa.';
+
+  function enJuego() { return document.body.dataset.pantalla === 'juego'; }
+
+  document.addEventListener('keydown', e => {
+    if (!enJuego()) return;
+    const fl = FLECHA[e.key];
+    if (fl) {
+      e.preventDefault();
+      if (e.repeat) return;
+      J.flechas[fl] = true;
+      if (J.patear && J.patear.fase !== 'pateado') moverMira(fl);
+      else if (J.atajar) apretoAtajar(fl);
+      return;
+    }
+    if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) teclaPatear('espacio', true); return; }
+    if (e.repeat) return;
+    if (e.code === 'KeyP') { teclaPatear('picar', true); return; }
+    if (e.code === 'KeyA') { teclaPatear('paradinha', true); return; }
+    if (e.code === 'KeyM') { decirMarcador(); return; }
+    if (e.code === 'KeyR') { anunciar(J.ultimo); return; }
+    if (e.code === 'KeyH') { anunciar(AYUDA); return; }
+    if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); pausar(); }
+  });
+  document.addEventListener('keyup', e => {
+    if (!enJuego()) return;
+    const fl = FLECHA[e.key];
+    if (fl) { J.flechas[fl] = false; return; }
+    if (e.code === 'Space') teclaPatear('espacio', false);
+  });
+  window.addEventListener('blur', () => { for (const k in J.flechas) J.flechas[k] = false; });
+
+  let ultimaMira = 'mC';
+  J.mira = 'mC';
+  // Cada flecha mueve la mira un lugar (arriba/medio/abajo, izquierda/medio/derecha).
+  // Se puede apretar de a una: no hace falta mantener varias teclas juntas.
+  function moverMira(fl) {
+    const FI = ['a', 'm', 'b'], CO = ['I', 'C', 'D'];
+    let f = FI.indexOf(fila(J.mira)), c = CO.indexOf(col(J.mira));
+    if (fl === 'arriba') f = Math.max(0, f - 1);
+    if (fl === 'abajo') f = Math.min(2, f + 1);
+    if (fl === 'izq') c = Math.max(0, c - 1);
+    if (fl === 'der') c = Math.min(2, c + 1);
+    J.mira = FI[f] + CO[c];
+    cambioMira(true);
+  }
+  function cambioMira(siempre) {
+    const z = J.mira;
+    if (z === ultimaMira && !siempre) return;
+    ultimaMira = z;
+    S.apuntar(z);
+    verMira(z);
+    if (J.practica) anunciar(ZONA_CORTA[z]);
+  }
+
+  // ---- Patear ----
+  function teclaPatear(que, abajo) {
+    const p = J.patear; if (!p) return;
+    if (que === 'espacio') {
+      if (abajo && p.fase === 'listo') empezarCarrera();
+      else if (!abajo && p.fase === 'carrera') soltar(false);
+    } else if (que === 'picar' && p.fase === 'carrera') soltar(true);
+    else if (que === 'paradinha' && p.fase === 'carrera' && !p.paradinha) paradinha();
+  }
+  function empezarCarrera() {
+    const p = J.patear;
+    p.fase = 'carrera'; p.acum = 0; p.ult = ahora(); p.pasos = 0; p.pausaHasta = 0;
+    p.carga = S.carga();
+    S.paso(0.15);
+    if (p.online) enviarOnline({ t: 'carrera' });
+    p.timer = setInterval(() => {
+      const t = ahora();
+      if (t < p.pausaHasta) { p.ult = t; return; }
+      p.acum += t - p.ult; p.ult = t;
+      const f = p.acum / p.T;
+      p.carga.poner(f);
+      $('#fuerza').style.width = Math.min(100, f / 1.3 * 100) + '%';
+      $('#fuerza').dataset.pasado = f > 1 ? '1' : '0';
+      const n = Math.floor(p.acum / 0.3);
+      if (n > p.pasos) { p.pasos = n; S.paso(Math.min(0.5, 0.18 + n * 0.07)); }
+      if (f >= 1.3) soltar(false);
+    }, 20);
+  }
+  function paradinha() {
+    const p = J.patear;
+    p.paradinha = true;
+    p.pausaHasta = ahora() + 0.7;
+    if (p.online) { enviarOnline({ t: 'paradinha' }); return; }
+    if (Math.random() < p.arquero.nervios * 0.85) {
+      const d = P.arqueroElige(p.arquero, J.mem);
+      p.arqTemprano = d;
+      setTimeout(() => { if (J.patear === p) { sonidoDive(d); verArquero(d); } }, 250 / VEL);
+    }
+  }
+  function soltar(picada) {
+    const p = J.patear;
+    clearInterval(p.timer);
+    p.carga.parar();
+    p.fase = 'pateado';
+    p.res({ zona: J.mira, fuerza: p.acum / p.T, picada, paradinha: p.paradinha, arqTemprano: p.arqTemprano });
+  }
+  function sonidoDive(d) {
+    if (d === 'mC') return;
+    if (d === 'aC') S.salto(); else S.estirada(S.PAN[col(d)]);
+  }
+  function textoFallo(t) {
+    if (t.resultado === 'afuera') return `¡Afuera! Se fue por la ${col(t.zona) === 'I' ? 'izquierda' : 'derecha'}.`;
+    if (t.resultado === 'arriba') return '¡Por arriba del travesaño!';
+    if (t.resultado === 'palo') return '¡Palo!';
+    return '¡Travesaño!';
+  }
+  function sonidoFallo(t, d) {
+    if (t.resultado === 'palo' || t.resultado === 'travesaño') S.palo(d.pan);
+    S.uhh();
+  }
+  const COMO_SE_TIRO = d => d === 'mC' ? 'se quedó parado' : d === 'aC' ? 'saltó arriba' : d === 'bC' ? 'se agachó' : 'se tiró ' + AL[d];
+
+  async function penalPatea(o) {
+    const tk = J.token;
+    const arq = o.arquero;
+    reiniciarVista('patear');
+    ultimaMira = 'mC'; J.mira = 'mC';
+    J.atajar = null; J.patear = null;
+    anunciar(o.aviso + 'Te toca patear. Ataja ' + arq.nombre + '.');
+    S.silbato();
+    await esperar(900);
+    chequear(tk);
+    const pedido = await new Promise(res => {
+      J.patear = { res, fase: 'listo', arquero: arq, T: 1.3 * (1 - 0.22 * o.presion), paradinha: false, arqTemprano: null };
+      cambioMira();
+    });
+    chequear(tk);
+    const tiro = P.resolverTiro({ ...pedido, presion: o.presion, precision: 1 });
+    const adelantado = !!pedido.arqTemprano;
+    const dive = pedido.arqTemprano || P.arqueroElige(arq, J.mem);
+    J.mem.tiros[pedido.zona]++; J.mem.totalTiros++; if (pedido.picada) J.mem.picadas++;
+    S.patada();
+    const D = P.duracionVuelo(pedido.fuerza, pedido.picada, 2, 0) * 0.9;
+    const d = destinoDe(tiro);
+    S.pelota(D, d.pan, d.frec, false);
+    verPelota(d, D);
+    if (!adelantado) { sonidoDive(dive); verArquero(dive); }
+    await esperar(D * 1000);
+    chequear(tk);
+    let gol = false, texto;
+    if (tiro.resultado === 'arco') {
+      const p = P.probAtajada({ dive, ball: tiro.zona, fuerza: pedido.fuerza, adelantado, tarde: 0, picada: tiro.picada, reflejos: arq.reflejos, grandote: arq.grandote });
+      if (Math.random() < p) {
+        S.guantes(d.pan); S.uhh(); S.mal(); cartel('¡ATAJÓ!', false);
+        texto = tiro.picada ? `¡Te atajó la picada ${arq.nombre}!` : `Te lo atajó ${arq.nombre}. Pateaste ${AL[tiro.zona]}.`;
+      } else {
+        gol = true; S.red(d.pan); S.festejo(); S.bien(); cartel('¡GOL!', true);
+        texto = tiro.picada ? '¡Gol! La picaste.' : `¡Gol! ${cap(AL[tiro.zona])}.`;
+      }
+    } else {
+      sonidoFallo(tiro, d); S.mal(); cartel(tiro.resultado === 'palo' ? '¡PALO!' : tiro.resultado === 'travesaño' ? '¡TRAVESAÑO!' : '¡AFUERA!', false);
+      texto = textoFallo(tiro);
+    }
+    if (tiro.debil) texto += ' Muy despacio.';
+    if (o.practica) {
+      texto += ` Fuerza ${Math.round(pedido.fuerza * 100)}${pedido.fuerza > 1 ? ', te pasaste' : ''}.`;
+      texto += ` El arquero ${COMO_SE_TIRO(dive)}${adelantado && dive !== 'mC' ? ' antes' : ''}.`;
+    }
+    J.patear = null;
+    return { gol, texto, bueno: gol };
+  }
+
+  // ---- Atajar ----
+  // Atajar: cada flecha mueve al arquero un lugar desde el medio, en cualquier orden
+  // (arriba y derecha, o derecha y arriba, da el ángulo derecho). Si apretaste una sin querer,
+  // la flecha contraria la deshace. Para llegar a tiempo cuenta el último cambio,
+  // salvo que las flechas vayan casi juntas (un cuarto de segundo).
+  function apretoAtajar(fl) {
+    const a = J.atajar;
+    if (!a || (a.fase !== 'carrera' && a.fase !== 'vuelo')) return;
+    const FI = ['a', 'm', 'b'], CO = ['I', 'C', 'D'];
+    const z = a.dive || 'mC';
+    let f = FI.indexOf(fila(z)), c = CO.indexOf(col(z));
+    if (fl === 'arriba') f = Math.max(0, f - 1);
+    if (fl === 'abajo') f = Math.min(2, f + 1);
+    if (fl === 'izq') c = Math.max(0, c - 1);
+    if (fl === 'der') c = Math.min(2, c + 1);
+    const nueva = FI[f] + CO[c];
+    if (nueva === z) return;
+    const t = ahora();
+    if (!a.primera || t - a.primera > 0.25) a.primera = t;
+    a.dive = nueva === 'mC' ? null : nueva;
+    a.diveT = a.primera;
+    if (a.online && a.fase === 'carrera') enviarOnline({ t: 'dive', dive: nueva });
+    if (nueva === 'mC') verArquero('mC'); else { sonidoDive(nueva); verArquero(nueva); }
+  }
+  function finalizarDive() {}
+
+  async function penalAtaja(o) {
+    const tk = J.token;
+    const pat = o.pateador;
+    reiniciarVista('atajar');
+    J.patear = null;
+    const a = J.atajar = { dive: null, diveT: null, combo: null, fase: 'espera' };
+    anunciar(o.aviso + 'Patea ' + pat.nombre + '.');
+    S.silbato();
+    await esperar(1000);
+    chequear(tk);
+    let plan = P.pateadorElige(pat, J.mem);
+    a.fase = 'carrera';
+    const n = 5;
+    let reacciono = false;
+    for (let i = 0; i < n; i++) {
+      S.paso(0.12 + i * 0.08);
+      if (i === n - 2 && plan.paradinha) await esperar(750);
+      const iv = plan.ritmo * (pat.irregular ? 0.7 + Math.random() * 0.6 : 1);
+      await esperar(iv * 1000);
+      if (!reacciono && a.dive && i < n - 1) { reacciono = true; plan = P.reaccionarAdelanto(pat, plan, a.dive); }
+    }
+    chequear(tk);
+    const tk0 = ahora();
+    a.fase = 'vuelo';
+    const tiro = P.resolverTiro({ zona: plan.zona, fuerza: plan.fuerza, picada: plan.picada, paradinha: plan.paradinha, presion: o.presion, precision: pat.precision });
+    const D = P.duracionVuelo(plan.fuerza, plan.picada, o.nivel, o.presion);
+    a.llegada = tk0 + D;
+    S.patada();
+    const d = destinoDe(tiro);
+    S.pelota(D, d.pan, d.frec, true);
+    verPelota(d, D);
+    await esperar(D * 1000);
+    chequear(tk);
+    if (a.combo) finalizarDive(a);
+    a.fase = 'fin';
+    const dive = a.dive || 'mC';
+    const adelantado = !!a.dive && a.diveT < tk0;
+    const tarde = a.dive ? Math.max(0, a.diveT + P.ALCANCE[dive] - a.llegada) : 0;
+    J.mem.dives[dive]++; J.mem.totalDives++; if (adelantado) J.mem.adelantos++;
+    let gol = false, texto;
+    if (tiro.resultado === 'arco') {
+      const p = P.probAtajada({ dive, ball: tiro.zona, fuerza: plan.fuerza, adelantado, tarde, picada: tiro.picada });
+      if (Math.random() < p) {
+        S.guantes(d.pan); S.festejo(); S.bien(); cartel('¡ATAJASTE!', true);
+        texto = tiro.picada ? '¡Le atajaste la picada!' : '¡Atajaste!';
+      } else {
+        gol = true; S.red(d.pan); S.lamento(); S.mal(); cartel('GOL', false);
+        texto = tiro.picada ? `Gol de ${pat.nombre}. Te la picó.` : `Gol de ${pat.nombre}, ${AL[tiro.zona]}.`;
+        if (tarde > 0 && P.cobertura(dive, tiro.zona) > 0) texto += ' Llegaste tarde.';
+      }
+    } else {
+      sonidoFallo(tiro, d); S.bien(); cartel(tiro.resultado === 'palo' ? '¡PALO!' : tiro.resultado === 'travesaño' ? '¡TRAVESAÑO!' : '¡AFUERA!', true);
+      texto = textoFallo(tiro);
+    }
+    if (o.practica) {
+      if (tiro.resultado === 'arco' && gol && !tiro.picada) texto += '';
+      texto += a.dive ? ` Te tiraste ${AL[dive]}${adelantado ? ', antes de la patada' : ''}.` : ' Te quedaste parado.';
+      if (plan.paradinha) texto += ' Hizo paradinha.';
+    }
+    J.atajar = null;
+    return { gol, texto, bueno: !gol };
+  }
+
+  // ---- Toque (celular) ----
+  (function toques() {
+    const zona = $('#cancha');
+    let ini = null;
+    const UMBRAL = 30;
+    function flechasDe(dx, dy) {
+      return { izq: dx < -UMBRAL, der: dx > UMBRAL, arriba: dy < -UMBRAL, abajo: dy > UMBRAL };
+    }
+    zona.addEventListener('pointerdown', e => {
+      if (!enJuego()) return;
+      e.preventDefault();
+      if (J.patear && J.patear.fase === 'carrera' && ini && e.pointerId !== ini.id) { teclaPatear('picar', true); return; }
+      ini = { x: e.clientX, y: e.clientY, id: e.pointerId };
+      if (J.patear && J.patear.fase === 'listo') { Object.assign(J.flechas, flechasDe(0, 0)); teclaPatear('espacio', true); }
+    });
+    zona.addEventListener('pointermove', e => {
+      if (!ini || e.pointerId !== ini.id) return;
+      const f = flechasDe(e.clientX - ini.x, e.clientY - ini.y);
+      if (J.patear && J.patear.fase !== 'pateado') { J.mira = P.zonaDeFlechas(f); cambioMira(); }
+      else if (J.atajar && (f.izq || f.der || f.arriba || f.abajo)) {
+        const a = J.atajar, z = P.zonaDeFlechas(f);
+        if ((a.fase === 'carrera' || a.fase === 'vuelo') && z !== (a.dive || 'mC')) {
+          a.primera = a.primera && ahora() - a.primera < 0.25 ? a.primera : ahora();
+          a.dive = z; a.diveT = a.primera;
+          if (a.online && a.fase === 'carrera') enviarOnline({ t: 'dive', dive: z });
+          sonidoDive(z); verArquero(z);
+        }
+      }
+    });
+    const fin = e => {
+      if (!ini || e.pointerId !== ini.id) return;
+      if (J.patear && J.patear.fase === 'carrera') teclaPatear('espacio', false);
+      ini = null;
+      for (const k in J.flechas) J.flechas[k] = false;
+    };
+    zona.addEventListener('pointerup', fin);
+    zona.addEventListener('pointercancel', fin);
+  })();
+
+  // ---- Tanda ----
+  async function bucleTanda() {
+    const t = J.tanda, r = J.rival;
+    if (!J.sorteoDicho) {
+      J.sorteoDicho = true;
+      const intro = J.copa ? `${RONDAS[J.copa.ronda]} contra ${r.nombre}. ` : `Contra ${r.nombre}. `;
+      anunciar(intro + (t.primero === 0 ? 'Pateás primero vos.' : 'Patean primero ellos.'));
+      await esperar(2600);
+    }
+    while (!t.terminada()) {
+      const eq = t.quienPatea();
+      const decisivo = t.esDecisivo(eq);
+      const presion = decisivo ? 1 : Math.min(0.7, (t.tiros(0) + t.tiros(1)) * 0.07 + (J.copa ? J.copa.ronda * 0.08 : 0));
+      S.presion(presion); S.corazon(decisivo);
+      let aviso = '';
+      if (t.muerteSubita() && !J.muerteDicha) { aviso = 'Muerte súbita. '; J.muerteDicha = true; }
+      if (decisivo) aviso += 'Penal decisivo. ';
+      let res;
+      try {
+        res = eq === 0
+          ? await penalPatea({ arquero: r.arquero, presion, aviso })
+          : await penalAtaja({ pateador: r.pateadores[t.tiros(1) % 5], nivel: J.nivel, presion, aviso });
+      } finally { S.corazon(false); }
+      t.registrar(eq, res.gol);
+      pintarMarcador();
+      const fin = t.terminada();
+      anunciar(res.texto + (fin ? '' : ' ' + marcadorCorto()));
+      await esperar(fin ? 1800 : 2700);
+    }
+    S.presion(0.1);
+    return t.ganador();
+  }
+
+  function nuevaTanda(rival) {
+    J.rival = rival;
+    J.tanda = new P.Tanda(Math.random() < 0.5 ? 0 : 1);
+    J.sorteoDicho = false; J.muerteDicha = false;
+    J.mem = P.nuevaMemoria();
+    pintarMarcador();
+  }
+
+  async function modoTanda() {
+    const g = await bucleTanda();
+    const t = J.tanda;
+    const res = `${t.cuenta(0)} a ${t.cuenta(1)}`;
+    if (g === 0) { S.ganarTanda(); finPantalla('¡Ganaste!', `Ganaste la tanda ${res}.`, 'Jugar otra tanda', () => empezar('tanda')); }
+    else { S.perderTanda(); finPantalla('Perdiste', `Perdiste la tanda ${res}.`, 'Jugar otra tanda', () => empezar('tanda')); }
+  }
+
+  async function modoCopa() {
+    const c = J.copa;
+    if (!J.tanda) nuevaTanda(c.rivales[c.ronda]);
+    J.nivel = c.rivales[c.ronda].nivel;
+    $('#ronda').textContent = RONDAS[c.ronda];
+    const g = await bucleTanda();
+    const t = J.tanda;
+    const res = `${t.cuenta(0)} a ${t.cuenta(1)}`;
+    J.tanda = null;
+    if (g === 1) {
+      S.perderTanda();
+      finPantalla('Quedaste afuera', `Perdiste ${res} contra ${c.rivales[c.ronda].nombre}. Quedaste afuera en ${RONDA_EN[c.ronda]}.`, 'Jugar otra copa', () => empezar('copa'));
+      return;
+    }
+    c.ronda++;
+    if (c.ronda >= RONDAS.length) {
+      S.ganarTanda();
+      finPantalla('¡Campeón!', `Ganaste la final ${res}. ¡Sos campeón de la Copa!`, 'Jugar otra copa', () => empezar('copa'));
+      return;
+    }
+    S.ganarTanda();
+    finPantalla('¡Pasaste!', `Ganaste ${res}. Pasás a ${RONDA_EN[c.ronda]} contra ${c.rivales[c.ronda].nombre}.`, 'Seguir', () => { mostrar('juego'); enfocarJuego(); correr(modoCopa); });
+  }
+
+  async function modoPractica() {
+    const pr = J.practica;
+    while (true) {
+      let res;
+      if (J.modo === 'pp') res = await penalPatea({ arquero: J.rival.arquero, presion: 0, aviso: '', practica: true });
+      else res = await penalAtaja({ pateador: J.rival.pateadores[pr.total % 5], nivel: 1, presion: 0, aviso: '', practica: true });
+      pr.total++; if (res.bueno) pr.buenos++;
+      pintarMarcador();
+      anunciar(res.texto);
+      await esperar(3000);
+    }
+  }
+
+  // ---- Online (uno contra uno con código) ----
+  const Online = { ws: null, yo: 0, nombres: ['', ''], presion: 0 };
+  const rivalOn = () => Online.nombres[1 - Online.yo] || 'tu rival';
+  function urlServidor() {
+    if (Q.get('servidor')) return Q.get('servidor');
+    if (location.protocol === 'https:' || location.protocol === 'http:') return (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
+    return 'wss://penales.onrender.com/ws';
+  }
+  function estadoOnline(t) { $('#oEstado').textContent = t; anunciar(t); }
+  function enviarOnline(m) { const w = Online.ws; if (w && w.readyState === 1) w.send(JSON.stringify(m)); }
+  function cerrarOnline() { const w = Online.ws; Online.ws = null; J.online = null; if (w) try { w.close(); } catch (e) {} }
+
+  function conectarOnline(primero) {
+    S.iniciar();
+    cerrarOnline();
+    let ws;
+    try { ws = new WebSocket(urlServidor()); } catch (e) { estadoOnline('No se pudo conectar.'); return; }
+    Online.ws = ws; J.online = Online;
+    estadoOnline('Conectando. Si el servidor estaba dormido puede tardar un minuto.');
+    ws.onopen = () => ws.send(JSON.stringify(primero));
+    ws.onmessage = ev => { let m; try { m = JSON.parse(ev.data); } catch (e) { return; } if (Online.ws === ws) mensajeOnline(m); };
+    ws.onclose = () => {
+      if (Online.ws !== ws) return;
+      Online.ws = null; J.online = null;
+      if (document.body.dataset.pantalla === 'online') estadoOnline('No se pudo conectar con el servidor.');
+      else if (J.modo === 'online' && !(J.tanda && J.tanda.terminada())) finPantalla('Se cortó', 'Se cortó la conexión con el servidor.', 'Jugar online', abrirOnline);
+    };
+  }
+
+  function localGoles(g) { return [g[Online.yo].slice(), g[1 - Online.yo].slice()]; }
+
+  function mensajeOnline(m) {
+    if (m.t === 'sala') {
+      Online.yo = m.yo;
+      if (m.yo === 0) estadoOnline('Mesa creada. Código ' + m.codigo.split('').join(' ') + '. Pasáselo a tu rival y esperá que entre.');
+      else estadoOnline('Entraste a la mesa.');
+    } else if (m.t === 'error') {
+      estadoOnline(m.texto);
+    } else if (m.t === 'empieza') {
+      Online.yo = m.yo; Online.nombres = m.nombres;
+      detenerTodo();
+      J.modo = 'online'; J.copa = null; J.practica = null; J.online = Online;
+      J.rival = { nombre: rivalOn() };
+      J.tanda = new P.Tanda(m.primero === m.yo ? 0 : 1);
+      $('#ronda').textContent = 'Online';
+      mostrar('juego'); enfocarJuego(); pintarMarcador();
+      S.presion(0.15);
+      anunciar(`Contra ${rivalOn()}. ${m.primero === m.yo ? 'Pateás primero vos.' : 'Patea primero ' + rivalOn() + '.'}`);
+    } else if (m.t === 'penal') {
+      if (document.body.dataset.pantalla !== 'juego') { mostrar('juego'); enfocarJuego(); }
+      J.token++;
+      Online.presion = m.presion;
+      S.presion(m.presion); S.corazon(m.decisivo);
+      const aviso = (m.muerte ? 'Muerte súbita. ' : '') + (m.decisivo ? 'Penal decisivo. ' : '');
+      if (m.pateador === Online.yo) onlinePatea(aviso); else onlineAtaja(aviso);
+    } else if (m.t === 'carrera') {
+      const a = J.atajar; if (!a || !a.online || a.fase !== 'espera') return;
+      a.fase = 'carrera'; a.pasos = 0; a.pausaHasta = 0;
+      a.timer = setInterval(() => {
+        if (ahora() < a.pausaHasta) return;
+        a.pasos++; S.paso(Math.min(0.5, 0.12 + a.pasos * 0.07));
+      }, 300 / VEL);
+    } else if (m.t === 'paradinha') {
+      const a = J.atajar; if (a && a.online) a.pausaHasta = ahora() + 0.7;
+    } else if (m.t === 'dive') {
+      if (J.patear && J.patear.online) { J.patear.diveVisto = true; sonidoDive(m.dive); verArquero(m.dive); }
+    } else if (m.t === 'patada') {
+      const d = destinoDe(m.tiro);
+      if (J.atajar && J.atajar.online) {
+        const a = J.atajar;
+        clearInterval(a.timer);
+        const tk0 = ahora();
+        a.fase = 'vuelo'; a.tiro = m.tiro;
+        S.patada(); S.pelota(m.D, d.pan, d.frec, true); verPelota(d, m.D);
+        const tok = J.token;
+        setTimeout(() => {
+          if (tok !== J.token || J.atajar !== a) return;
+          if (a.combo) finalizarDive(a);
+          a.fase = 'fin';
+          enviarOnline({ t: 'atajada', dive: a.dive, rel: a.dive ? a.diveT - tk0 : null });
+        }, m.D * 1000 / VEL);
+      } else if (J.patear && J.patear.online) {
+        S.pelota(m.D * 0.9, d.pan, d.frec, false); verPelota(d, m.D * 0.9);
+      }
+    } else if (m.t === 'resultado') {
+      S.corazon(false);
+      const yoPateo = m.pateador === Online.yo;
+      const tiro = m.tiro, dive = m.dive, d = destinoDe(tiro);
+      const diveYaSono = yoPateo ? (J.patear && J.patear.diveVisto) : true;
+      if (yoPateo && !diveYaSono) { sonidoDive(dive); verArquero(dive); }
+      J.patear = null; J.atajar = null;
+      J.tanda.goles = localGoles(m.goles);
+      pintarMarcador();
+      let texto;
+      if (yoPateo) {
+        if (tiro.resultado !== 'arco') { sonidoFallo(tiro, d); S.mal(); cartel('¡' + (tiro.resultado === 'palo' ? 'PALO' : tiro.resultado === 'travesaño' ? 'TRAVESAÑO' : 'AFUERA') + '!', false); texto = textoFallo(tiro); }
+        else if (m.gol) { S.red(d.pan); S.festejo(); S.bien(); cartel('¡GOL!', true); texto = tiro.picada ? '¡Gol! La picaste.' : `¡Gol! ${cap(AL[tiro.zona])}.`; }
+        else { S.guantes(d.pan); S.uhh(); S.mal(); cartel('¡ATAJÓ!', false); texto = tiro.picada ? `¡Te atajó la picada ${rivalOn()}!` : `Te lo atajó ${rivalOn()}. Pateaste ${AL[tiro.zona]}.`; }
+      } else {
+        if (tiro.resultado !== 'arco') { sonidoFallo(tiro, d); S.bien(); cartel('¡' + (tiro.resultado === 'palo' ? 'PALO' : tiro.resultado === 'travesaño' ? 'TRAVESAÑO' : 'AFUERA') + '!', true); texto = textoFallo(tiro); }
+        else if (m.gol) {
+          S.red(d.pan); S.lamento(); S.mal(); cartel('GOL', false);
+          texto = tiro.picada ? `Gol de ${rivalOn()}. Te la picó.` : `Gol de ${rivalOn()}, ${AL[tiro.zona]}.`;
+          if (m.tarde > 0 && P.cobertura(dive, tiro.zona) > 0) texto += ' Llegaste tarde.';
+        } else { S.guantes(d.pan); S.festejo(); S.bien(); cartel('¡ATAJASTE!', true); texto = tiro.picada ? '¡Le atajaste la picada!' : '¡Atajaste!'; }
+      }
+      if (tiro.debil && yoPateo) texto += ' Muy despacio.';
+      anunciar(texto + (J.tanda.terminada() ? '' : ' ' + marcadorCorto()));
+    } else if (m.t === 'fin') {
+      J.tanda.goles = localGoles(m.goles);
+      const t = J.tanda, gane = m.ganador === Online.yo;
+      const res = `${t.cuenta(0)} a ${t.cuenta(1)}`;
+      setTimeout(() => {
+        if (gane) S.ganarTanda(); else S.perderTanda();
+        finPantalla(gane ? '¡Ganaste!' : 'Perdiste', `${gane ? 'Le ganaste' : 'Perdiste'} ${res} contra ${rivalOn()}.`, 'Revancha', () => {
+          enviarOnline({ t: 'revancha' });
+          $('#finTexto').textContent = 'Esperando que ' + rivalOn() + ' acepte la revancha.';
+          anunciar($('#finTexto').textContent);
+        });
+      }, 1500 / VEL);
+    } else if (m.t === 'pideRevancha') {
+      anunciar(rivalOn() + ' quiere la revancha.');
+    } else if (m.t === 'rivalSeFue') {
+      const w = Online.ws; Online.ws = null; J.online = null; if (w) try { w.close(); } catch (e) {}
+      finPantalla('Se fue', rivalOn() + ' se fue de la mesa.', 'Jugar online', abrirOnline);
+    }
+  }
+
+  function onlinePatea(aviso) {
+    const tk = J.token;
+    reiniciarVista('patear');
+    ultimaMira = 'mC'; J.mira = 'mC';
+    J.atajar = null; J.patear = null;
+    anunciar(aviso + 'Te toca patear. Ataja ' + rivalOn() + '.');
+    S.silbato();
+    setTimeout(() => {
+      if (tk !== J.token) return;
+      J.patear = {
+        online: true, fase: 'listo', paradinha: false, T: 1.3 * (1 - 0.22 * Online.presion),
+        res: pedido => { S.patada(); enviarOnline({ t: 'patear', zona: pedido.zona, fuerza: pedido.fuerza, picada: pedido.picada, paradinha: pedido.paradinha }); }
+      };
+      cambioMira();
+    }, 900 / VEL);
+  }
+
+  function onlineAtaja(aviso) {
+    reiniciarVista('atajar');
+    J.patear = null;
+    J.atajar = { online: true, dive: null, diveT: null, combo: null, fase: 'espera' };
+    anunciar(aviso + 'Patea ' + rivalOn() + '.');
+    S.silbato();
+  }
+
+  function abrirOnline() {
+    detenerTodo();
+    cerrarOnline();
+    J.modo = null; J.tanda = null;
+    $('#oEstado').textContent = '';
+    mostrar('online');
+    try { $('#oNombre').value = localStorage.getItem('penales-nombre') || $('#oNombre').value; } catch (e) {}
+    $('#oNombre').focus();
+  }
+  function guardarNombre() { try { localStorage.setItem('penales-nombre', $('#oNombre').value.trim()); } catch (e) {} }
+  $('#bOnline').addEventListener('click', abrirOnline);
+  $('#oCrear').addEventListener('click', () => { guardarNombre(); conectarOnline({ t: 'crear', nombre: $('#oNombre').value }); });
+  $('#oUnirme').addEventListener('click', () => {
+    const k = $('#oCodigo').value.replace(/\D/g, '');
+    if (k.length !== 4) { estadoOnline('El código tiene 4 números.'); $('#oCodigo').focus(); return; }
+    guardarNombre(); conectarOnline({ t: 'unirme', codigo: k, nombre: $('#oNombre').value });
+  });
+  $('#oCodigo').addEventListener('keydown', e => { if (e.key === 'Enter') $('#oUnirme').click(); });
+  $('#oVolver').addEventListener('click', () => { cerrarOnline(); mostrar('inicio'); $('#bOnline').focus(); });
+
+  // ---- Arranque, pausa y fin ----
+  async function correr(fn) {
+    J.bucle = fn;
+    try { await fn(); } catch (e) { if (!(e instanceof Cancelado)) { console.error(e); } }
+  }
+  function enfocarJuego() { $('#zonaJuego').focus(); }
+
+  function empezar(modo) {
+    S.iniciar();
+    J.token++;
+    J.modo = modo; J.copa = null; J.practica = null; J.patear = null; J.atajar = null;
+    $('#ronda').textContent = '';
+    mostrar('juego');
+    enfocarJuego();
+    S.presion(0.15);
+    if (modo === 'tanda') { J.nivel = 2; nuevaTanda(P.generarEquipo(2)); $('#ronda').textContent = 'Tanda de penales'; correr(modoTanda); }
+    else if (modo === 'copa') {
+      const nombres = P.mezclar(P.EQUIPOS, Math.random);
+      J.copa = { ronda: 0, rivales: [1, 2, 3, 4].map((n, i) => P.generarEquipo(n, Math.random, nombres[i])) };
+      J.tanda = null;
+      correr(modoCopa);
+    } else {
+      J.nivel = 1; J.tanda = null;
+      J.rival = P.generarEquipo(1);
+      J.mem = P.nuevaMemoria();
+      J.practica = { total: 0, buenos: 0 };
+      $('#ronda').textContent = modo === 'pp' ? 'Práctica de pateo' : 'Práctica de atajar';
+      pintarMarcador();
+      correr(modoPractica);
+    }
+  }
+
+  function detenerTodo() {
+    J.token++;
+    if (J.patear && J.patear.timer) { clearInterval(J.patear.timer); J.patear.carga && J.patear.carga.parar(); }
+    J.patear = null; J.atajar = null;
+    S.corazon(false);
+    for (const k in J.flechas) J.flechas[k] = false;
+  }
+
+  function pausar() {
+    if (J.modo === 'online') {
+      mostrar('pausa'); $('#pausaTexto').hidden = false;
+      anunciar('Menú. En online el partido sigue: Seguir para volver, o Volver al menú para irte de la mesa.');
+      $('#pSeguir').focus();
+      return;
+    }
+    $('#pausaTexto').hidden = true;
+    detenerTodo();
+    mostrar('pausa');
+    anunciar('Pausa.');
+    $('#pSeguir').focus();
+  }
+  function seguir() {
+    mostrar('juego');
+    enfocarJuego();
+    if (J.modo === 'online') return;
+    const fn = J.bucle;
+    if (fn) correr(fn);
+  }
+  function alMenu() {
+    detenerTodo();
+    cerrarOnline();
+    J.modo = null;
+    S.presion(-1);
+    J.tanda = null; J.copa = null; J.practica = null; J.rival = null;
+    mostrar('inicio');
+    $('#bTanda').focus();
+  }
+  let accionFin = null;
+  function finPantalla(titulo, texto, boton, accion) {
+    detenerTodo();
+    accionFin = accion;
+    $('#finTitulo').textContent = titulo;
+    $('#finTexto').textContent = texto;
+    $('#finSeguir').textContent = boton;
+    mostrar('fin');
+    anunciar(texto);
+    $('#finSeguir').focus();
+  }
+
+  // ---- Tribuna dibujada ----
+  (function tribuna() {
+    const g = $('#tribuna');
+    const colores = ['#e94f37', '#2e86de', '#f6c90e', '#ffffff', '#3ba55c', '#ff8c42', '#8e5bd6'];
+    let html = '';
+    for (let fy = 0; fy < 6; fy++) for (let x = 6 + (fy % 2) * 6; x < 400; x += 12) {
+      html += `<circle cx="${x}" cy="${18 + fy * 13}" r="4.2" fill="${colores[(x * 7 + fy * 13) % colores.length]}" opacity="${0.75 + (fy % 3) * 0.08}"/>`;
+    }
+    g.innerHTML = html;
+  })();
+
+  $('#bTanda').addEventListener('click', () => empezar('tanda'));
+  $('#bCopa').addEventListener('click', () => empezar('copa'));
+  $('#bPracPatear').addEventListener('click', () => empezar('pp'));
+  $('#bPracAtajar').addEventListener('click', () => empezar('pa'));
+  $('#bAyuda').addEventListener('click', () => { mostrar('ayuda'); $('#ayudaVolver').focus(); });
+  document.querySelectorAll('.sonidos button').forEach(b => b.addEventListener('click', () => {
+    S.iniciar();
+    if (b.dataset.mira) S.apuntar(b.dataset.mira);
+    else S.pelota(0.8, S.PAN[b.dataset.lado || 'C'], b.dataset.pelota, true);
+  }));
+  $('#ayudaVolver').addEventListener('click', () => { mostrar('inicio'); $('#bAyuda').focus(); });
+  $('#pSeguir').addEventListener('click', seguir);
+  $('#pMenu').addEventListener('click', alMenu);
+  $('#finSeguir').addEventListener('click', () => accionFin && accionFin());
+  $('#finMenu').addEventListener('click', alMenu);
+  document.addEventListener('keydown', e => {
+    const pant = document.body.dataset.pantalla;
+    if (e.key === 'Escape' && (pant === 'pausa')) { e.preventDefault(); seguir(); }
+    else if (e.key === 'Escape' && pant === 'ayuda') { e.preventDefault(); mostrar('inicio'); $('#bAyuda').focus(); }
+  });
+
+  mostrar('inicio');
+  setTimeout(() => $('#bTanda').focus(), 50);
+})();
+
+</script>
+</body>
+</html>

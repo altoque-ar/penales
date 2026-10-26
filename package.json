@@ -1,0 +1,7 @@
+{
+  "name": "penales",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": { "start": "node servidor/servidor.js", "test": "node test/logica.test.js" },
+  "engines": { "node": ">=18" }
+}
