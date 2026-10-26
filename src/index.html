@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="penales-version" content="3">
+<meta name="theme-color" content="#2f7d32">
+<title>Penales</title>
+<link rel="icon" href="icono-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Penales">
+<style>
+  :root {
+    --cielo: #fdf3df; --tinta: #2b2118; --suave: #6b5a47; --verde: #2f7d32; --verde2: #3c9a40;
+    --boton: #fff8ec; --borde: #c9a77a; --oro: #e2a400; --rojo: #c0392b; --ok: #2e8b3e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: radial-gradient(circle at 50% 0%, #fffaf0, var(--cielo) 60%, #f3e2c2);
+    color: var(--tinta); font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 16px; min-height: 100%; display: flex; flex-direction: column; }
+  h1 { font-size: 2.6rem; margin: 18px 0 2px; letter-spacing: .02em; text-align: center; }
+  h1 span { color: var(--verde); }
+  .sub { text-align: center; color: var(--suave); margin: 0 0 22px; }
+  .menu { display: grid; gap: 12px; max-width: 420px; width: 100%; margin: 0 auto; }
+  button {
+    font: inherit; font-weight: 600; padding: 14px 18px; border-radius: 14px; cursor: pointer;
+    background: linear-gradient(#fffdf8, var(--boton)); color: var(--tinta);
+    border: 2px solid var(--borde); box-shadow: 0 3px 0 #b8925f, 0 6px 14px rgba(80,50,10,.12);
+  }
+  button.principal { background: linear-gradient(#4caf50, var(--verde)); color: #fff; border-color: #24632a; box-shadow: 0 3px 0 #1d5122, 0 6px 14px rgba(20,60,20,.25); }
+  button:active { transform: translateY(2px); box-shadow: 0 1px 0 #b8925f; }
+  button:focus-visible { outline: 3px solid var(--oro); outline-offset: 3px; }
+  .version { text-align: center; color: var(--suave); font-size: .85rem; margin-top: auto; padding-top: 24px; }
+
+  #juego { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  #zonaJuego { outline: none; display: flex; flex-direction: column; gap: 10px; }
+  #ronda { text-align: center; font-weight: 700; color: var(--suave); min-height: 1.4em; }
+  #marcador { display: grid; gap: 6px; background: #fffaf0; border: 2px solid var(--borde); border-radius: 14px; padding: 8px 12px; }
+  .fila { display: grid; grid-template-columns: minmax(0, 1fr) auto 2.2em; align-items: center; gap: 10px; }
+  .fila .eq { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fila b { font-size: 1.4rem; text-align: right; }
+  .puntos { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+  .tiro { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #b8a080; background: #fff; }
+  .tiro.gol { background: var(--ok); border-color: #1f6b2c; }
+  .tiro.nogol { background: var(--rojo); border-color: #8c2a1f; }
+  #cancha { width: 100%; height: auto; display: block; border-radius: 18px; touch-action: none; user-select: none;
+    box-shadow: 0 0 0 6px #8b5a2b, 0 0 0 9px #c9a77a, 0 10px 26px rgba(60,30,0,.25); background: #79b86a; }
+  #pelota, #arquero { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .28s cubic-bezier(.2,.8,.3,1); }
+  #pelota { transform-origin: 50% 50%; }
+  #cartel { font: 900 34px system-ui, sans-serif; text-anchor: middle; paint-order: stroke; stroke: #3b2410; stroke-width: 6px; fill: #ffd84a; }
+  #cartel[data-bueno="0"] { fill: #ff8a7a; }
+  #cartel.salta { animation: salta .5s ease-out; }
+  @keyframes salta { from { opacity: 0; font-size: 12px; } to { opacity: 1; font-size: 34px; } }
+  #mira circle { fill: rgba(255,216,74,.25); stroke: #ffd84a; stroke-width: 2.5; stroke-dasharray: 5 4; }
+  #barraFuerza { height: 16px; border-radius: 9px; background: #e8d9bd; border: 2px solid var(--borde); overflow: hidden; position: relative; }
+  #barraFuerza::after { content: ""; position: absolute; left: 53.8%; width: 19.2%; top: 0; bottom: 0; background: rgba(46,139,62,.25); border-left: 2px solid rgba(46,139,62,.6); border-right: 2px solid rgba(46,139,62,.6); }
+  #fuerza { height: 100%; width: 0; background: linear-gradient(90deg, #f6c90e, #f39c12); }
+  #fuerza[data-pasado="1"] { background: linear-gradient(90deg, #f39c12, #e74c3c); }
+  #textoVisible { text-align: center; font-weight: 600; min-height: 2.9em; margin: 0; }
+  .teclas { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .teclas button { padding: 9px 14px; font-size: .95rem; }
+
+  .panel { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(43,33,24,.45); padding: 16px; z-index: 5; }
+  .caja { background: #fffaf0; border: 3px solid var(--borde); border-radius: 20px; padding: 22px; max-width: 420px; width: 100%; display: grid; gap: 12px; text-align: center; box-shadow: 0 18px 40px rgba(0,0,0,.25); }
+  .caja h2 { margin: 0; font-size: 1.8rem; }
+  #ayuda .caja { text-align: left; max-width: 560px; max-height: 90vh; overflow: auto; }
+  #ayuda h3 { margin: 6px 0 0; }
+  #ayuda ul { margin: 4px 0; padding-left: 22px; }
+  .sonidos { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+  .sonidos button { padding: 9px 10px; font-size: .95rem; }
+  .campo { display: grid; gap: 4px; text-align: left; font-weight: 600; }
+  .campo input { font: inherit; padding: 10px 12px; border-radius: 10px; border: 2px solid var(--borde); background: #fff; }
+  .estado { font-weight: 700; color: var(--verde); min-height: 1.4em; margin: 0; }
+  .oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  [hidden] { display: none !important; }
+  @media (max-width: 480px) { h1 { font-size: 2.1rem; } .tiro { width: 11px; height: 11px; } }
+</style>
+</head>
+<body>
+<main role="application" aria-label="Penales">
+  <div id="aviso1" class="oculto" aria-live="assertive" aria-atomic="true"></div>
+  <div id="aviso2" class="oculto" aria-live="assertive" aria-atomic="true"></div>
+
+  <section id="inicio">
+    <h1>Pena<span>les</span></h1>
+    <p class="sub">Tandas de penales para jugar con el oído.</p>
+    <div class="menu">
+      <button id="bTanda" class="principal">Tanda de penales</button>
+      <button id="bCopa">Copa</button>
+      <button id="bPracPatear">Práctica de pateo</button>
+      <button id="bPracAtajar">Práctica de atajar</button>
+      <button id="bOnline">Jugar online</button>
+      <button id="bAyuda">Cómo se juega</button>
+    </div>
+    <p class="version">Versión 1.0</p>
+  </section>
+
+  <section id="juego" hidden>
+    <div id="zonaJuego" tabindex="-1" aria-label="Cancha">
+      <div id="ronda" aria-hidden="true"></div>
+      <div id="marcador" aria-hidden="true">
+        <div class="fila"><span class="eq" id="eq0">Vos</span><span class="puntos" id="p0"></span><b id="g0">0</b></div>
+        <div class="fila"><span class="eq" id="eq1">Rival</span><span class="puntos" id="p1"></span><b id="g1">0</b></div>
+      </div>
+      <svg id="cancha" viewBox="0 0 400 300" aria-hidden="true">
+        <defs>
+          <linearGradient id="gCielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc4f2"/><stop offset="1" stop-color="#cfeaff"/></linearGradient>
+          <pattern id="gPasto" width="400" height="40" patternUnits="userSpaceOnUse"><rect width="400" height="20" fill="#5fa84f"/><rect y="20" width="400" height="20" fill="#6db85b"/></pattern>
+          <pattern id="gRed" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M0 0L10 10M10 0L0 10" stroke="#ffffff" stroke-opacity=".55" stroke-width="1"/></pattern>
+          <radialGradient id="gPelota" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d8d8d8"/></radialGradient>
+        </defs>
+        <rect width="400" height="110" fill="url(#gCielo)"/>
+        <rect y="6" width="400" height="92" fill="#8a6b4a"/>
+        <g id="tribuna"></g>
+        <rect y="96" width="400" height="10" fill="#e9e1cf"/>
+        <rect y="104" width="400" height="196" fill="url(#gPasto)"/>
+        <path d="M30 186 H370 M100 186 L70 236 H330 L300 186" stroke="#fff" stroke-width="2.5" fill="none" stroke-opacity=".85"/>
+        <circle cx="200" cy="262" r="2.5" fill="#fff"/>
+        <rect x="80" y="66" width="240" height="120" fill="#ffffff" fill-opacity=".12"/>
+        <rect x="80" y="66" width="240" height="120" fill="url(#gRed)"/>
+        <g id="mira" style="display:none"><circle r="17"/></g>
+        <g id="arquero">
+          <rect x="186" y="168" width="11" height="18" rx="3" fill="#1d3557"/>
+          <rect x="203" y="168" width="11" height="18" rx="3" fill="#1d3557"/>
+          <rect x="182" y="132" width="36" height="40" rx="8" fill="#f4a020"/>
+          <rect x="162" y="134" width="22" height="9" rx="4" fill="#f4a020" transform="rotate(-35 184 138)"/>
+          <rect x="216" y="134" width="22" height="9" rx="4" fill="#f4a020" transform="rotate(35 216 138)"/>
+          <circle cx="166" cy="124" r="6" fill="#3fb24a"/>
+          <circle cx="234" cy="124" r="6" fill="#3fb24a"/>
+          <circle cx="200" cy="121" r="11" fill="#f1c27d"/>
+          <path d="M189 117 Q200 106 211 117" fill="#4a2c17"/>
+        </g>
+        <rect x="76" y="62" width="6" height="126" rx="2" fill="#ffffff" stroke="#bbb"/>
+        <rect x="318" y="62" width="6" height="126" rx="2" fill="#ffffff" stroke="#bbb"/>
+        <rect x="76" y="62" width="248" height="6" rx="2" fill="#ffffff" stroke="#bbb"/>
+        <g id="pelota">
+          <circle cx="200" cy="262" r="10" fill="url(#gPelota)" stroke="#555" stroke-width="1"/>
+          <path d="M200 256 l5 3.5 -2 6 h-6 l-2 -6z" fill="#333"/>
+        </g>
+        <text id="cartel" x="200" y="230"></text>
+      </svg>
+      <div id="barraFuerza" aria-hidden="true" hidden><div id="fuerza"></div></div>
+      <p id="textoVisible" aria-hidden="true"></p>
+    </div>
+  </section>
+
+  <section id="fin" class="panel" hidden>
+    <div class="caja">
+      <h2 id="finTitulo"></h2>
+      <p id="finTexto"></p>
+      <button id="finSeguir" class="principal"></button>
+      <button id="finMenu">Volver al menú</button>
+    </div>
+  </section>
+
+  <section id="pausa" class="panel" hidden>
+    <div class="caja">
+      <h2>Pausa</h2>
+      <p id="pausaTexto" hidden>En online el partido sigue mientras estás acá.</p>
+      <button id="pSeguir" class="principal">Seguir</button>
+      <button id="pMenu">Volver al menú</button>
+    </div>
+  </section>
+
+  <section id="online" class="panel" hidden>
+    <div class="caja">
+      <h2>Jugar online</h2>
+      <p>Uno contra uno. Uno crea la mesa y le pasa el código al otro.</p>
+      <label class="campo">Tu nombre <input id="oNombre" maxlength="20" autocomplete="nickname"></label>
+      <button id="oCrear" class="principal">Crear mesa</button>
+      <label class="campo">Código de la mesa <input id="oCodigo" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+      <button id="oUnirme">Unirme a la mesa</button>
+      <p id="oEstado" class="estado"></p>
+      <button id="oVolver">Volver</button>
+    </div>
+  </section>
+
+  <section id="ayuda" class="panel" hidden>
+    <div class="caja">
+      <h2>Cómo se juega</h2>
+      <p>Se juega con el oído: lo que va a la izquierda suena en el oído izquierdo, lo que va a la derecha en el derecho, y cuanto más agudo, más arriba. Mejor con auriculares.</p>
+      <h3>Para patear</h3>
+      <ul>
+        <li>Mantené Espacio: el jugador corre y la fuerza sube con un tono. Soltalo para patear.</li>
+        <li>La fuerza justa está cerca del final del tono. Si te pasás, el tono se pone áspero y la pelota se va alta.</li>
+        <li>Cada penal arranca apuntando al medio. Cada flecha mueve la mira un lugar, y no hace falta mantenerlas: arriba y después derecha es el ángulo derecho; abajo y después izquierda, abajo a la izquierda. Podés apuntar antes o mientras corrés. Arriba suenan dos pitidos que suben, al medio un pitido, abajo dos golpes graves.</li>
+        <li>P, mientras corrés: la picás. Si el arquero se tira, es golazo; si se queda parado, te la ataja.</li>
+        <li>A, mientras corrés: paradinha. Frenás un momento y, si el arquero se tira antes, lo escuchás y pateás para el otro lado.</li>
+      </ul>
+      <h3>Para atajar</h3>
+      <ul>
+        <li>Escuchá la carrera: si corre rápido, viene fuerte; si corre lento, capaz te la pica.</li>
+        <li>Cada flecha mueve al arquero un lugar desde el medio, en cualquier orden: arriba y derecha, o derecha y arriba, es el ángulo derecho. Si apretaste una sin querer, la flecha contraria la deshace. Ojo: cuanto más tarde cambiás, más difícil llegar.</li>
+        <li>La pelota suena distinto según la altura: arriba es un silbido agudo que sube, al medio un zumbido parejo, abajo un ruido grave de pelota que pica en el pasto.</li>
+        <li>Sin tocar nada te quedás parado y cubrís el medio y abajo al medio.</li>
+        <li>Si te tirás antes de la patada llegás a los ángulos, pero el pateador te puede ver y cambiar.</li>
+      </ul>
+      <h3>Otras teclas</h3>
+      <ul>
+        <li>M: marcador. R: repetir lo último. H: teclas. Escape: pausa.</li>
+        <li>En el celular: tocá y mantené para correr, deslizá el dedo hacia donde querés patear y soltá. Para atajar, deslizá hacia donde te querés tirar.</li>
+      </ul>
+      <p>La compu aprende: si siempre hacés lo mismo, te lee.</p>
+      <h3>Escuchar los sonidos</h3>
+      <div class="sonidos">
+        <button data-pelota="a">Pelota arriba</button>
+        <button data-pelota="m">Pelota al medio</button>
+        <button data-pelota="b">Pelota abajo</button>
+        <button data-pelota="p">Picada</button>
+        <button data-pelota="m" data-lado="I">Pelota a la izquierda</button>
+        <button data-pelota="m" data-lado="D">Pelota a la derecha</button>
+        <button data-mira="aC">Mira arriba</button>
+        <button data-mira="mC">Mira al medio</button>
+        <button data-mira="bC">Mira abajo</button>
+      </div>
+      <button id="ayudaVolver" class="principal">Volver</button>
+    </div>
+  </section>
+</main>
+<script src="logica.js"></script>
+<script src="sonido.js"></script>
+<script src="juego.js"></script>
+</body>
+</html>
